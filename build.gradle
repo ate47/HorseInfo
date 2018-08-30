@@ -31,9 +31,8 @@ buildscript {
 apply plugin: 'com.matthewprenger.cursegradle'
 apply plugin: 'net.minecraftforge.gradle.tweaker-client'
 apply plugin: 'java'
-apply plugin: 'org.spongepowered.mixin'
 
-group 'fr.atesab.x13'
+group 'fr.atesab.horsedebug'
 version '1.0.2'
 archivesBaseName = 'HorseDebug'
 
@@ -47,11 +46,6 @@ repositories {
     maven {
         name = "DimDev"
         url = "https://www.dimdev.org/maven/"
-    }
-
-    maven {
-        name = "CurseForge"
-        url = "https://minecraft.curseforge.com/api/maven"
     }
 
     maven {
@@ -69,9 +63,4 @@ minecraft {
     mappings = 'snapshot_5'
     runDir = 'run'
     tweakClass = 'org.dimdev.riftloader.launch.RiftLoaderClientTweaker'
-}
-
-mixin {
-    defaultObfuscationEnv notch
-    add sourceSets.main, 'mixins.x13.refmap.json'
 }
