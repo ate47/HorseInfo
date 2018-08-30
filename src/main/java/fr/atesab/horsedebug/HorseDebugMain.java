@@ -17,7 +17,6 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.passive.AbstractHorse;
 import net.minecraft.util.math.RayTraceResult;
-import net.minecraft.util.text.TextFormatting;
 
 public class HorseDebugMain {
 	private static final Logger log = LogManager.getLogger("HorseDebug");
@@ -105,7 +104,7 @@ public class HorseDebugMain {
 
 	public String[] getEntityData(EntityLivingBase entity) {
 		List<String> text = Lists.newArrayList();
-		text.add(TextFormatting.AQUA + entity.getDisplayName().getFormattedText());
+		text.add("\u00a7b" + entity.getDisplayName().getFormattedText());
 		if (entity instanceof AbstractHorse) {
 			AbstractHorse baby = (AbstractHorse) entity;
 
@@ -127,15 +126,14 @@ public class HorseDebugMain {
 					+ significantNumbers(
 							baby.getEntityAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).getAttributeValue())
 					+ " iu)");
-			text.add(I18n.format("gui.act.invView.horse.health") + " : " + getFormattedText(
-					((int) (baby.getEntityAttribute(SharedMonsterAttributes.MAX_HEALTH).getAttributeValue()) * 10) / 20,
-					BAD_HP, EXELLENT_HP) + " HP");
+			text.add(I18n.format("gui.act.invView.horse.health") + " : "
+					+ getFormattedText((baby.getMaxHealth()/2D), BAD_HP, EXELLENT_HP) + " HP");
 		}
 		return text.stream().toArray(String[]::new);
 	}
 
 	private static String getFormattedText(double value, double bad, double exellent) {
-		return ((value > exellent) ? TextFormatting.GOLD : (value < bad) ? TextFormatting.RED : TextFormatting.GREEN)
+		return new String(new char[] { '\u00a7', ((value > exellent) ? '6' : (value < bad) ? 'c' : 'a') })
 				+ significantNumbers(value);
 	}
 
