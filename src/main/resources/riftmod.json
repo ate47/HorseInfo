@@ -1,0 +1,10 @@
+{
+	"id": "horsedebug",
+	"name": "HorseDebug",
+	"authors": [
+		"ATE47"
+	],
+	"listeners": [
+		"fr.atesab.horsedebug.RiftHorseDebug"
+	]
+}
