@@ -10,7 +10,7 @@ issueTrackerURL="https://github.com/ate47/HorseInfo/issues"
 	authors="ATE47"
 	description="Show horse info on debug scren"
 
-[[dependencies.act]]
+[[dependencies.horsedebug]]
     modId="minecraft"
     mandatory=true
     versionRange="[1.13.2]"
