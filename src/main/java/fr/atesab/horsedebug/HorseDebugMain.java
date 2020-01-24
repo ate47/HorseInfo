@@ -7,7 +7,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.google.common.collect.Lists;
-import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.systems.RenderSystem;
 
 import net.minecraft.client.MainWindow;
 import net.minecraft.client.Minecraft;
@@ -85,7 +85,7 @@ public class HorseDebugMain {
 			if (sizeY < 100)
 				sizeY = 100;
 		}
-		MainWindow mw = mc.mainWindow;
+		MainWindow mw = mc.func_228018_at_(); // getMainWindow
 		posX += 5;
 		posY += 5;
 		if (posX + sizeX > mw.getScaledWidth())
@@ -98,8 +98,8 @@ public class HorseDebugMain {
 			posY1 += (mc.fontRenderer.FONT_HEIGHT + 1);
 		}
 		if (entity != null) {
-			GlStateManager.color3f(1.0F, 1.0F, 1.0F);
-			InventoryScreen.drawEntityOnScreen(posX + sizeX - 55, posY + 105, 50, 50, 0, entity);
+			RenderSystem.color3f(1.0F, 1.0F, 1.0F);
+			InventoryScreen.func_228187_a_(posX + sizeX - 55, posY + 105, 50, 50, 0, entity); // drawEntityOnScreen
 		}
 	}
 
@@ -155,7 +155,7 @@ public class HorseDebugMain {
 		Minecraft mc = Minecraft.getInstance();
 		if (!mc.gameSettings.showDebugInfo)
 			return;
-		MainWindow mw = mc.mainWindow;
+		MainWindow mw = mc.func_228018_at_(); // getMainWindow
 		if (mc.player.getRidingEntity() instanceof AbstractHorseEntity) {
 			AbstractHorseEntity baby = (AbstractHorseEntity) mc.player.getRidingEntity();
 			drawInventory(mc, mw.getScaledWidth(), mw.getScaledHeight(), getEntityData(baby), baby);
