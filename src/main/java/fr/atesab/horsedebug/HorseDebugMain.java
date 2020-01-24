@@ -7,15 +7,16 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.google.common.collect.Lists;
+import com.mojang.blaze3d.platform.GlStateManager;
 
 import net.minecraft.client.MainWindow;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.inventory.GuiInventory;
-import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.gui.screen.inventory.InventoryScreen;
 import net.minecraft.client.resources.I18n;
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.SharedMonsterAttributes;
-import net.minecraft.entity.passive.AbstractHorse;
+import net.minecraft.entity.passive.horse.AbstractHorseEntity;
+import net.minecraft.util.math.EntityRayTraceResult;
 import net.minecraft.util.math.RayTraceResult;
 
 public class HorseDebugMain {
@@ -64,7 +65,7 @@ public class HorseDebugMain {
 	public static final double EXELLENT_JUMP = 5; // max: 5.5?
 	public static final double EXELLENT_SPEED = 13;// max: 14.1?
 
-	public void drawInventory(Minecraft mc, int posX, int posY, String[] addText, EntityLivingBase entity) {
+	public void drawInventory(Minecraft mc, int posX, int posY, String[] addText, LivingEntity entity) {
 		int l = addText.length;
 		if (l == 0)
 			return;
@@ -98,15 +99,15 @@ public class HorseDebugMain {
 		}
 		if (entity != null) {
 			GlStateManager.color3f(1.0F, 1.0F, 1.0F);
-			GuiInventory.drawEntityOnScreen(posX + sizeX - 55, posY + 105, 50, 50, 0, entity);
+			InventoryScreen.drawEntityOnScreen(posX + sizeX - 55, posY + 105, 50, 50, 0, entity);
 		}
 	}
 
-	public String[] getEntityData(EntityLivingBase entity) {
+	public String[] getEntityData(LivingEntity entity) {
 		List<String> text = Lists.newArrayList();
 		text.add("\u00a7b" + entity.getDisplayName().getFormattedText());
-		if (entity instanceof AbstractHorse) {
-			AbstractHorse baby = (AbstractHorse) entity;
+		if (entity instanceof AbstractHorseEntity) {
+			AbstractHorseEntity baby = (AbstractHorseEntity) entity;
 
 			double yVelocity = baby.getHorseJumpStrength();
 			double jumpHeight = 0;
@@ -155,14 +156,16 @@ public class HorseDebugMain {
 		if (!mc.gameSettings.showDebugInfo)
 			return;
 		MainWindow mw = mc.mainWindow;
-		if (mc.player.getRidingEntity() instanceof AbstractHorse) {
-			AbstractHorse baby = (AbstractHorse) mc.player.getRidingEntity();
+		if (mc.player.getRidingEntity() instanceof AbstractHorseEntity) {
+			AbstractHorseEntity baby = (AbstractHorseEntity) mc.player.getRidingEntity();
 			drawInventory(mc, mw.getScaledWidth(), mw.getScaledHeight(), getEntityData(baby), baby);
 		} else {
 			RayTraceResult obj = mc.objectMouseOver;
-			if (obj != null && obj.type.equals(RayTraceResult.Type.ENTITY) && obj.entity instanceof EntityLivingBase) {
-				drawInventory(mc, mw.getScaledWidth(), mw.getScaledHeight(),
-						getEntityData((EntityLivingBase) obj.entity), (EntityLivingBase) obj.entity);
+			if (obj != null && obj instanceof EntityRayTraceResult) {
+				EntityRayTraceResult eo = (EntityRayTraceResult) obj;
+				if (eo.getEntity() instanceof LivingEntity)
+					drawInventory(mc, mw.getScaledWidth(), mw.getScaledHeight(),
+							getEntityData((LivingEntity) eo.getEntity()), (LivingEntity) eo.getEntity());
 			}
 		}
 	}
