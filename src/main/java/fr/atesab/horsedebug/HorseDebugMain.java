@@ -48,7 +48,7 @@ public class HorseDebugMain {
 	 */
 	public static HorseDebugMain registerAPI(BuildAPI api) throws IllegalStateException {
 		instance = new HorseDebugMain();
-		log("Starting Xray with " + api.getAPIName());
+		log("Starting HorseDebug with " + api.getAPIName());
 		return instance;
 	}
 
@@ -97,7 +97,7 @@ public class HorseDebugMain {
 			posY1 += (mc.fontRenderer.FONT_HEIGHT + 1);
 		}
 		if (entity != null) {
-			GlStateManager.color(1.0F, 1.0F, 1.0F);
+			GlStateManager.color3f(1.0F, 1.0F, 1.0F);
 			GuiInventory.drawEntityOnScreen(posX + sizeX - 55, posY + 105, 50, 50, 0, entity);
 		}
 	}
@@ -119,15 +119,13 @@ public class HorseDebugMain {
 					+ getFormattedText(jumpHeight, BAD_JUMP, EXELLENT_JUMP) + " " + "("
 					+ significantNumbers(baby.getHorseJumpStrength()) + " iu)");
 			text.add(I18n.format("gui.act.invView.horse.speed") + " : "
-					+ getFormattedText(
-							baby.getEntityAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).getAttributeValue() * 43,
+					+ getFormattedText(baby.getAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).getBaseValue() * 43,
 							BAD_SPEED, EXELLENT_SPEED)
 					+ " m/s " + "("
-					+ significantNumbers(
-							baby.getEntityAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).getAttributeValue())
+					+ significantNumbers(baby.getAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).getBaseValue())
 					+ " iu)");
 			text.add(I18n.format("gui.act.invView.horse.health") + " : "
-					+ getFormattedText((baby.getMaxHealth()/2D), BAD_HP, EXELLENT_HP) + " HP");
+					+ getFormattedText((baby.getMaxHealth() / 2D), BAD_HP, EXELLENT_HP) + " HP");
 		}
 		return text.stream().toArray(String[]::new);
 	}
@@ -153,7 +151,7 @@ public class HorseDebugMain {
 	}
 
 	public void renderOverlay() {
-		Minecraft mc = Minecraft.getMinecraft();
+		Minecraft mc = Minecraft.getInstance();
 		if (!mc.gameSettings.showDebugInfo)
 			return;
 		MainWindow mw = mc.mainWindow;
@@ -162,10 +160,9 @@ public class HorseDebugMain {
 			drawInventory(mc, mw.getScaledWidth(), mw.getScaledHeight(), getEntityData(baby), baby);
 		} else {
 			RayTraceResult obj = mc.objectMouseOver;
-			if (obj != null && obj.typeOfHit.equals(RayTraceResult.Type.ENTITY)
-					&& obj.entityHit instanceof EntityLivingBase) {
+			if (obj != null && obj.type.equals(RayTraceResult.Type.ENTITY) && obj.entity instanceof EntityLivingBase) {
 				drawInventory(mc, mw.getScaledWidth(), mw.getScaledHeight(),
-						getEntityData((EntityLivingBase) obj.entityHit), (EntityLivingBase) obj.entityHit);
+						getEntityData((EntityLivingBase) obj.entity), (EntityLivingBase) obj.entity);
 			}
 		}
 	}

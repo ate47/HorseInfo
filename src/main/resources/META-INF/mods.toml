@@ -1,0 +1,18 @@
+modLoader="javafml"
+loaderVersion="[30,)"
+issueTrackerURL="https://github.com/ate47/HorseInfo/issues"
+[[mods]]
+	modId="horsedebug"
+	version="1.0.2"
+	displayName="Horse debug info"
+	displayURL="https://www.curseforge.com/minecraft/mc-mods/horse-debug-info"
+	logoFile="logo.png"
+	authors="ATE47"
+	description="Show horse info on debug scren"
+
+[[dependencies.act]]
+    modId="minecraft"
+    mandatory=true
+    versionRange="[1.13.2]"
+    ordering="NONE"
+    side="BOTH"
