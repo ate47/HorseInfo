@@ -7,20 +7,23 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.google.common.collect.Lists;
+import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.systems.RenderSystem;
 
 import net.minecraft.client.MainWindow;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.inventory.GuiInventory;
-import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.gui.screen.inventory.InventoryScreen;
 import net.minecraft.client.resources.I18n;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.SharedMonsterAttributes;
-import net.minecraft.entity.passive.AbstractHorse;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.ai.attributes.Attributes;
+import net.minecraft.entity.passive.horse.AbstractHorseEntity;
+import net.minecraft.util.math.EntityRayTraceResult;
 import net.minecraft.util.math.RayTraceResult;
 
 public class HorseDebugMain {
 	private static final Logger log = LogManager.getLogger("HorseDebug");
 	private static HorseDebugMain instance;
+	private static final MatrixStack STACK = new MatrixStack();
 
 	private static void log(String message) {
 		log.info("[" + log.getName() + "] " + message);
@@ -43,12 +46,11 @@ public class HorseDebugMain {
 	/**
 	 * register an API for HorseDebug
 	 * 
-	 * @throws IllegalStateException
-	 *             if an API is already register for it
+	 * @throws IllegalStateException if an API is already register for it
 	 */
 	public static HorseDebugMain registerAPI(BuildAPI api) throws IllegalStateException {
 		instance = new HorseDebugMain();
-		log("Starting Xray with " + api.getAPIName());
+		log("Starting HorseDebug with " + api.getAPIName());
 		return instance;
 	}
 
@@ -64,7 +66,8 @@ public class HorseDebugMain {
 	public static final double EXELLENT_JUMP = 5; // max: 5.5?
 	public static final double EXELLENT_SPEED = 13;// max: 14.1?
 
-	public void drawInventory(Minecraft mc, int posX, int posY, String[] addText, EntityLivingBase entity) {
+	@SuppressWarnings("deprecation")
+	public void drawInventory(Minecraft mc, int posX, int posY, String[] addText, LivingEntity entity) {
 		int l = addText.length;
 		if (l == 0)
 			return;
@@ -84,7 +87,7 @@ public class HorseDebugMain {
 			if (sizeY < 100)
 				sizeY = 100;
 		}
-		MainWindow mw = mc.mainWindow;
+		MainWindow mw = mc.getMainWindow();
 		posX += 5;
 		posY += 5;
 		if (posX + sizeX > mw.getScaledWidth())
@@ -93,20 +96,20 @@ public class HorseDebugMain {
 			posY -= sizeY + 10;
 		int posY1 = posY + 5;
 		for (int i = 0; i < addText.length; i++) {
-			mc.fontRenderer.drawStringWithShadow(addText[i], posX + 5, posY1, 0xffffffff);
+			mc.fontRenderer.func_238405_a_(STACK, addText[i], posX + 5, posY1, 0xffffffff); // drawString
 			posY1 += (mc.fontRenderer.FONT_HEIGHT + 1);
 		}
 		if (entity != null) {
-			GlStateManager.color(1.0F, 1.0F, 1.0F);
-			GuiInventory.drawEntityOnScreen(posX + sizeX - 55, posY + 105, 50, 50, 0, entity);
+			RenderSystem.color3f(1.0F, 1.0F, 1.0F);
+			InventoryScreen.drawEntityOnScreen(posX + sizeX - 55, posY + 105, 50, 50, 0, entity); // drawEntityOnScreen
 		}
 	}
 
-	public String[] getEntityData(EntityLivingBase entity) {
+	public String[] getEntityData(LivingEntity entity) {
 		List<String> text = Lists.newArrayList();
-		text.add("\u00a7b" + entity.getDisplayName().getFormattedText());
-		if (entity instanceof AbstractHorse) {
-			AbstractHorse baby = (AbstractHorse) entity;
+		text.add("\u00a7b" + entity.getDisplayName().getString());
+		if (entity instanceof AbstractHorseEntity) {
+			AbstractHorseEntity baby = (AbstractHorseEntity) entity;
 
 			double yVelocity = baby.getHorseJumpStrength();
 			double jumpHeight = 0;
@@ -119,15 +122,12 @@ public class HorseDebugMain {
 					+ getFormattedText(jumpHeight, BAD_JUMP, EXELLENT_JUMP) + " " + "("
 					+ significantNumbers(baby.getHorseJumpStrength()) + " iu)");
 			text.add(I18n.format("gui.act.invView.horse.speed") + " : "
-					+ getFormattedText(
-							baby.getEntityAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).getAttributeValue() * 43,
+					+ getFormattedText(baby.getAttribute(Attributes.field_233821_d_).getBaseValue() * 43, // MOVEMENT_SPEED
 							BAD_SPEED, EXELLENT_SPEED)
-					+ " m/s " + "("
-					+ significantNumbers(
-							baby.getEntityAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).getAttributeValue())
+					+ " m/s " + "(" + significantNumbers(baby.getAttribute(Attributes.field_233821_d_).getBaseValue()) // MOVEMENT_SPEED
 					+ " iu)");
 			text.add(I18n.format("gui.act.invView.horse.health") + " : "
-					+ getFormattedText((baby.getMaxHealth()/2D), BAD_HP, EXELLENT_HP) + " HP");
+					+ getFormattedText((baby.getMaxHealth() / 2D), BAD_HP, EXELLENT_HP) + " HP");
 		}
 		return text.stream().toArray(String[]::new);
 	}
@@ -153,19 +153,20 @@ public class HorseDebugMain {
 	}
 
 	public void renderOverlay() {
-		Minecraft mc = Minecraft.getMinecraft();
+		Minecraft mc = Minecraft.getInstance();
 		if (!mc.gameSettings.showDebugInfo)
 			return;
-		MainWindow mw = mc.mainWindow;
-		if (mc.player.getRidingEntity() instanceof AbstractHorse) {
-			AbstractHorse baby = (AbstractHorse) mc.player.getRidingEntity();
+		MainWindow mw = mc.getMainWindow();
+		if (mc.player.getRidingEntity() instanceof AbstractHorseEntity) {
+			AbstractHorseEntity baby = (AbstractHorseEntity) mc.player.getRidingEntity();
 			drawInventory(mc, mw.getScaledWidth(), mw.getScaledHeight(), getEntityData(baby), baby);
 		} else {
 			RayTraceResult obj = mc.objectMouseOver;
-			if (obj != null && obj.typeOfHit.equals(RayTraceResult.Type.ENTITY)
-					&& obj.entityHit instanceof EntityLivingBase) {
-				drawInventory(mc, mw.getScaledWidth(), mw.getScaledHeight(),
-						getEntityData((EntityLivingBase) obj.entityHit), (EntityLivingBase) obj.entityHit);
+			if (obj != null && obj instanceof EntityRayTraceResult) {
+				EntityRayTraceResult eo = (EntityRayTraceResult) obj;
+				if (eo.getEntity() instanceof LivingEntity)
+					drawInventory(mc, mw.getScaledWidth(), mw.getScaledHeight(),
+							getEntityData((LivingEntity) eo.getEntity()), (LivingEntity) eo.getEntity());
 			}
 		}
 	}
