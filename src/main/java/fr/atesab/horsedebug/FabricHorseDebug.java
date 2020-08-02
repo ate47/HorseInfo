@@ -2,6 +2,7 @@ package fr.atesab.horsedebug;
 
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
+import net.minecraft.client.util.math.MatrixStack;
 
 public class FabricHorseDebug implements BuildAPI, HudRenderCallback, ClientModInitializer {
 
@@ -17,12 +18,12 @@ public class FabricHorseDebug implements BuildAPI, HudRenderCallback, ClientModI
 	}
 
 	@Override
-	public void onHudRender(float tickDelta) {
-		mod.renderOverlay();
+	public void onInitializeClient() {
+		HudRenderCallback.EVENT.register(this);
 	}
 
 	@Override
-	public void onInitializeClient() {
-		HudRenderCallback.EVENT.register(this);
+	public void onHudRender(MatrixStack matrixStack, float tickDelta) {
+		mod.renderOverlay(matrixStack);
 	}
 }

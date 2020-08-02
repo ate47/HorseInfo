@@ -13,6 +13,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.ingame.InventoryScreen;
 import net.minecraft.client.resource.language.I18n;
 import net.minecraft.client.util.Window;
+import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.passive.HorseBaseEntity;
@@ -65,7 +66,8 @@ public class HorseDebugMain {
 	public static final double EXELLENT_JUMP = 5; // max: 5.5?
 	public static final double EXELLENT_SPEED = 13;// max: 14.1?
 
-	public void drawInventory(MinecraftClient mc, int posX, int posY, String[] addText, LivingEntity entity) {
+	public void drawInventory(MatrixStack stack, MinecraftClient mc, int posX, int posY, String[] addText,
+			LivingEntity entity) {
 		int l = addText.length;
 		if (l == 0)
 			return;
@@ -76,7 +78,7 @@ public class HorseDebugMain {
 			itemSize = mc.textRenderer.fontHeight * 2 + 2;
 		for (int i = 0; i < addText.length; i++) {
 			sizeY += mc.textRenderer.fontHeight + 1;
-			int a = mc.textRenderer.getStringWidth(addText[i]) + 10;
+			int a = mc.textRenderer.getWidth(addText[i]) + 10;
 			if (a > sizeX)
 				sizeX = a;
 		}
@@ -94,7 +96,7 @@ public class HorseDebugMain {
 			posY -= sizeY + 10;
 		int posY1 = posY + 5;
 		for (int i = 0; i < addText.length; i++) {
-			mc.textRenderer.drawWithShadow(addText[i], posX + 5, posY1, 0xffffffff);
+			mc.textRenderer.drawWithShadow(stack, addText[i], posX + 5, posY1, 0xffffffff);
 			posY1 += (mc.textRenderer.fontHeight + 1);
 		}
 		if (entity != null) {
@@ -105,7 +107,7 @@ public class HorseDebugMain {
 
 	public String[] getEntityData(LivingEntity entity) {
 		List<String> text = Lists.newArrayList();
-		text.add("\u00a7b" + entity.getDisplayName().asFormattedString());
+		text.add("\u00a7b" + entity.getDisplayName().asString());
 		if (entity instanceof HorseBaseEntity) {
 			HorseBaseEntity baby = (HorseBaseEntity) entity;
 
@@ -120,13 +122,15 @@ public class HorseDebugMain {
 					+ getFormattedText(jumpHeight, BAD_JUMP, EXELLENT_JUMP) + " " + "("
 					+ significantNumbers(baby.getJumpStrength()) + " iu)");
 			text.add(I18n.translate("gui.act.invView.horse.speed") + " : "
-					+ getFormattedText(baby.getAttributeInstance(EntityAttributes.MOVEMENT_SPEED).getBaseValue() * 43,
+					+ getFormattedText(
+							baby.getAttributeInstance(EntityAttributes.GENERIC_MOVEMENT_SPEED).getBaseValue() * 43,
 							BAD_SPEED, EXELLENT_SPEED)
 					+ " m/s " + "("
-					+ significantNumbers(baby.getAttributeInstance(EntityAttributes.MOVEMENT_SPEED).getBaseValue())
+					+ significantNumbers(
+							baby.getAttributeInstance(EntityAttributes.GENERIC_MOVEMENT_SPEED).getBaseValue())
 					+ " iu)");
 			text.add(I18n.translate("gui.act.invView.horse.health") + " : "
-					+ getFormattedText((baby.getMaximumHealth() / 2D), BAD_HP, EXELLENT_HP) + " HP");
+					+ getFormattedText((baby.getMaxHealth() / 2D), BAD_HP, EXELLENT_HP) + " HP");
 		}
 		return text.stream().toArray(String[]::new);
 	}
@@ -151,20 +155,20 @@ public class HorseDebugMain {
 		return (a ? "-" : "") + d1 + s;
 	}
 
-	public void renderOverlay() {
+	public void renderOverlay(MatrixStack stack) {
 		MinecraftClient mc = MinecraftClient.getInstance();
 		if (!mc.options.debugEnabled)
 			return;
 		Window mw = mc.getWindow();
 		if (mc.player.getVehicle() instanceof HorseBaseEntity) {
 			HorseBaseEntity baby = (HorseBaseEntity) mc.player.getVehicle();
-			drawInventory(mc, mw.getScaledWidth(), mw.getScaledHeight(), getEntityData(baby), baby);
+			drawInventory(stack, mc, mw.getScaledWidth(), mw.getScaledHeight(), getEntityData(baby), baby);
 		} else {
 			HitResult obj = mc.crosshairTarget;
 			if (obj != null && obj instanceof EntityHitResult) {
 				EntityHitResult eo = (EntityHitResult) obj;
 				if (eo.getEntity() instanceof LivingEntity)
-					drawInventory(mc, mw.getScaledWidth(), mw.getScaledHeight(),
+					drawInventory(stack, mc, mw.getScaledWidth(), mw.getScaledHeight(),
 							getEntityData((LivingEntity) eo.getEntity()), (LivingEntity) eo.getEntity());
 			}
 		}
