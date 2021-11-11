@@ -3,27 +3,24 @@ package fr.atesab.horsedebug;
 import java.util.List;
 import java.util.Locale;
 
+import com.google.common.collect.Lists;
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.google.common.collect.Lists;
-import com.mojang.blaze3d.matrix.MatrixStack;
-import com.mojang.blaze3d.systems.RenderSystem;
-
-import net.minecraft.client.MainWindow;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screen.inventory.InventoryScreen;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.ai.attributes.Attributes;
-import net.minecraft.entity.passive.horse.AbstractHorseEntity;
-import net.minecraft.util.math.EntityRayTraceResult;
-import net.minecraft.util.math.RayTraceResult;
+import net.minecraft.client.gui.screens.inventory.InventoryScreen;
+import net.minecraft.client.resources.language.I18n;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.animal.horse.AbstractHorse;
+import net.minecraft.world.phys.EntityHitResult;
 
 public class HorseDebugMain {
 	private static final Logger log = LogManager.getLogger("HorseDebug");
 	private static HorseDebugMain instance;
-	private static final MatrixStack STACK = new MatrixStack();
 
 	private static void log(String message) {
 		log.info("[" + log.getName() + "] " + message);
@@ -66,19 +63,19 @@ public class HorseDebugMain {
 	public static final double EXELLENT_JUMP = 5; // max: 5.5?
 	public static final double EXELLENT_SPEED = 13;// max: 14.1?
 
-	@SuppressWarnings("deprecation")
-	public void drawInventory(Minecraft mc, int posX, int posY, String[] addText, LivingEntity entity) {
+	public void drawInventory(PoseStack stack, Minecraft mc, int posX, int posY, String[] addText,
+			LivingEntity entity) {
 		int l = addText.length;
 		if (l == 0)
 			return;
 		int sizeX = 0;
 		int sizeY = 0;
 		int itemSize = 20;
-		if (mc.fontRenderer.FONT_HEIGHT * 2 + 2 > itemSize)
-			itemSize = mc.fontRenderer.FONT_HEIGHT * 2 + 2;
+		if (mc.font.lineHeight * 2 + 2 > itemSize)
+			itemSize = mc.font.lineHeight * 2 + 2;
 		for (int i = 0; i < addText.length; i++) {
-			sizeY += mc.fontRenderer.FONT_HEIGHT + 1;
-			int a = mc.fontRenderer.getStringWidth(addText[i]) + 10;
+			sizeY += mc.font.lineHeight + 1;
+			int a = mc.font.width(addText[i]) + 10;
 			if (a > sizeX)
 				sizeX = a;
 		}
@@ -87,46 +84,45 @@ public class HorseDebugMain {
 			if (sizeY < 100)
 				sizeY = 100;
 		}
-		MainWindow mw = mc.getMainWindow();
+		var mw = mc.getWindow();
 		posX += 5;
 		posY += 5;
-		if (posX + sizeX > mw.getScaledWidth())
+		if (posX + sizeX > mw.getGuiScaledWidth())
 			posX -= sizeX + 10;
-		if (posY + sizeY > mw.getScaledHeight())
+		if (posY + sizeY > mw.getGuiScaledHeight())
 			posY -= sizeY + 10;
 		int posY1 = posY + 5;
 		for (int i = 0; i < addText.length; i++) {
-			mc.fontRenderer.func_238405_a_(STACK, addText[i], posX + 5, posY1, 0xffffffff); // drawString
-			posY1 += (mc.fontRenderer.FONT_HEIGHT + 1);
+			mc.font.draw(stack, addText[i], posX + 5, posY1, 0xffffffff);
+			posY1 += (mc.font.lineHeight + 1);
 		}
 		if (entity != null) {
-			RenderSystem.color3f(1.0F, 1.0F, 1.0F);
-			InventoryScreen.drawEntityOnScreen(posX + sizeX - 55, posY + 105, 50, 50, 0, entity); // drawEntityOnScreen
+			InventoryScreen.renderEntityInInventory(posX + sizeX - 55, posY + 105, 50, 50, 0, entity);
 		}
 	}
 
 	public String[] getEntityData(LivingEntity entity) {
 		List<String> text = Lists.newArrayList();
 		text.add("\u00a7b" + entity.getDisplayName().getString());
-		if (entity instanceof AbstractHorseEntity) {
-			AbstractHorseEntity baby = (AbstractHorseEntity) entity;
+		if (entity instanceof AbstractHorse baby) {
 
-			double yVelocity = baby.getHorseJumpStrength();
+			var jumpStrength = baby.getAttribute(Attributes.JUMP_STRENGTH).getBaseValue();
+			double yVelocity = jumpStrength;
 			double jumpHeight = 0;
 			while (yVelocity > 0) {
 				jumpHeight += yVelocity;
 				yVelocity -= 0.08;
 				yVelocity *= 0.98;
 			}
-			text.add(I18n.format("gui.act.invView.horse.jump") + " : "
+			text.add(I18n.get("gui.act.invView.horse.jump") + " : "
 					+ getFormattedText(jumpHeight, BAD_JUMP, EXELLENT_JUMP) + " " + "("
-					+ significantNumbers(baby.getHorseJumpStrength()) + " iu)");
-			text.add(I18n.format("gui.act.invView.horse.speed") + " : "
-					+ getFormattedText(baby.getAttribute(Attributes.field_233821_d_).getBaseValue() * 43, // MOVEMENT_SPEED
-							BAD_SPEED, EXELLENT_SPEED)
-					+ " m/s " + "(" + significantNumbers(baby.getAttribute(Attributes.field_233821_d_).getBaseValue()) // MOVEMENT_SPEED
+					+ significantNumbers(jumpStrength) + " iu)");
+			text.add(I18n.get("gui.act.invView.horse.speed") + " : "
+					+ getFormattedText(baby.getAttribute(Attributes.MOVEMENT_SPEED).getBaseValue() * 43, BAD_SPEED,
+							EXELLENT_SPEED)
+					+ " m/s " + "(" + significantNumbers(baby.getAttribute(Attributes.MOVEMENT_SPEED).getBaseValue())
 					+ " iu)");
-			text.add(I18n.format("gui.act.invView.horse.health") + " : "
+			text.add(I18n.get("gui.act.invView.horse.health") + " : "
 					+ getFormattedText((baby.getMaxHealth() / 2D), BAD_HP, EXELLENT_HP) + " HP");
 		}
 		return text.stream().toArray(String[]::new);
@@ -152,21 +148,18 @@ public class HorseDebugMain {
 		return (a ? "-" : "") + d1 + s;
 	}
 
-	public void renderOverlay() {
+	public void renderOverlay(PoseStack stack) {
 		Minecraft mc = Minecraft.getInstance();
-		if (!mc.gameSettings.showDebugInfo)
+		if (!mc.options.renderDebug)
 			return;
-		MainWindow mw = mc.getMainWindow();
-		if (mc.player.getRidingEntity() instanceof AbstractHorseEntity) {
-			AbstractHorseEntity baby = (AbstractHorseEntity) mc.player.getRidingEntity();
-			drawInventory(mc, mw.getScaledWidth(), mw.getScaledHeight(), getEntityData(baby), baby);
+		var mw = mc.getWindow();
+		if (mc.player.getVehicle() instanceof AbstractHorse baby) {
+			drawInventory(stack, mc, mw.getGuiScaledWidth(), mw.getGuiScaledHeight(), getEntityData(baby), baby);
 		} else {
-			RayTraceResult obj = mc.objectMouseOver;
-			if (obj != null && obj instanceof EntityRayTraceResult) {
-				EntityRayTraceResult eo = (EntityRayTraceResult) obj;
-				if (eo.getEntity() instanceof LivingEntity)
-					drawInventory(mc, mw.getScaledWidth(), mw.getScaledHeight(),
-							getEntityData((LivingEntity) eo.getEntity()), (LivingEntity) eo.getEntity());
+			var obj = mc.hitResult;
+			if (obj != null && obj instanceof EntityHitResult eo) {
+				if (eo.getEntity() instanceof LivingEntity le)
+					drawInventory(stack, mc, mw.getGuiScaledWidth(), mw.getGuiScaledHeight(), getEntityData(le), le);
 			}
 		}
 	}

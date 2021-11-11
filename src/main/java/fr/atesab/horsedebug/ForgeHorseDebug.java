@@ -20,7 +20,7 @@ public class ForgeHorseDebug implements BuildAPI {
 	public void onRenderOverlay(RenderGameOverlayEvent.Post ev) {
 		if (ev.getType() == ElementType.DEBUG)
 			if (mod != null)
-				mod.renderOverlay();
+				mod.renderOverlay(ev.getMatrixStack());
 	}
 
 	@Override
