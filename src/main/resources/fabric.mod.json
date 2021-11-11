@@ -4,10 +4,8 @@
   "version": "1.0.2",
 
   "name": "Horse debug info",
-  "description": "Show horse info on debug scren!",
-  "authors": [
-    "ATE47"
-  ],
+  "description": "Show horse info on debug screen!",
+  "authors": ["ATE47"],
   "contact": {
     "homepage": "https://www.curseforge.com/minecraft/mc-mods/horse-debug-info",
     "sources": "https://github.com/ate47/HorseInfo",
@@ -19,16 +17,14 @@
 
   "environment": "client",
   "entrypoints": {
-    "client": [
-      "fr.atesab.horsedebug.FabricHorseDebug"
-    ]
+    "client": ["fr.atesab.horsedebug.FabricHorseDebug"]
   },
   "mixins": [],
 
   "depends": {
-    "fabricloader": ">=0.7.4",
+    "fabricloader": ">=0.11.3",
     "fabric": "*",
-    "minecraft": "1.16.x"
+    "minecraft": "1.17.x"
   },
   "suggests": {
     "flamingo": "*"

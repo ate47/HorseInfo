@@ -45,8 +45,7 @@ public class HorseDebugMain {
 	/**
 	 * register an API for HorseDebug
 	 * 
-	 * @throws IllegalStateException
-	 *             if an API is already register for it
+	 * @throws IllegalStateException if an API is already register for it
 	 */
 	public static HorseDebugMain registerAPI(BuildAPI api) throws IllegalStateException {
 		instance = new HorseDebugMain();
@@ -87,7 +86,7 @@ public class HorseDebugMain {
 			if (sizeY < 100)
 				sizeY = 100;
 		}
-		Window mw = mc.getWindow();
+		var mw = mc.getWindow();
 		posX += 5;
 		posY += 5;
 		if (posX + sizeX > mw.getScaledWidth())
@@ -100,7 +99,6 @@ public class HorseDebugMain {
 			posY1 += (mc.textRenderer.fontHeight + 1);
 		}
 		if (entity != null) {
-			RenderSystem.color3f(1.0F, 1.0F, 1.0F);
 			InventoryScreen.drawEntity(posX + sizeX - 55, posY + 105, 50, 50, 0, entity); // drawEntityOnScreen
 		}
 	}
