@@ -11,6 +11,12 @@
   "gui.act.invView.horse.variant.black": "Black",
   "gui.act.invView.horse.variant.gray": "Gray",
   "gui.act.invView.horse.variant.darkbrown": "Darkbrown",
+
+  "gui.act.invView.horse.variant.marking.none": "none",
+  "gui.act.invView.horse.variant.marking.white": "white",
+  "gui.act.invView.horse.variant.marking.white_field": "white_field",
+  "gui.act.invView.horse.variant.marking.white_dots": "white_dots",
+  "gui.act.invView.horse.variant.marking.black_dots": "black_dots",
   "gui.act.invView.horse.variant.unknown": "Unknown",
 
   "gui.act.invView.cat.variant.tabby": "Tabby",

@@ -20,6 +20,7 @@ import net.minecraft.entity.passive.CatEntity;
 import net.minecraft.entity.passive.HorseBaseEntity;
 import net.minecraft.entity.passive.HorseColor;
 import net.minecraft.entity.passive.HorseEntity;
+import net.minecraft.entity.passive.HorseMarking;
 import net.minecraft.entity.passive.SheepEntity;
 import net.minecraft.util.hit.EntityHitResult;
 import net.minecraft.util.hit.HitResult;
@@ -78,6 +79,23 @@ public class HorseDebugMain {
 		}
 	}
 
+	public static String getHorseColorNameDescription(HorseMarking color) {
+		switch (color.getIndex()) {
+		case 0:
+			return "none";
+		case 1:
+			return "white";
+		case 2:
+			return "white_field";
+		case 3:
+			return "white_dots";
+		case 4:
+			return "black_dots";
+		default:
+			return "unknown";
+		}
+	}
+
 	public static String getCatColorNameDescription(int color) {
 		switch (color) {
 		case 0:
@@ -107,8 +125,9 @@ public class HorseDebugMain {
 		}
 	}
 
-	public static String getHorseColorName(HorseColor color) {
-		return I18n.translate("gui.act.invView.horse.variant." + getHorseColorNameDescription(color));
+	public static String getHorseColorName(HorseColor color, HorseMarking marking) {
+		return I18n.translate("gui.act.invView.horse.variant." + getHorseColorNameDescription(color)) + " / "
+				+ I18n.translate("gui.act.invView.horse.variant.marking." + getHorseColorNameDescription(marking));
 	}
 
 	public static String getCatColorName(int color) {
@@ -190,8 +209,10 @@ public class HorseDebugMain {
 
 			if (baby instanceof HorseEntity horse) {
 				var color = horse.getColor();
-				text.add(I18n.translate("gui.act.invView.horse.variant") + ": " + getHorseColorName(color) + " ("
-						+ color.getIndex() + ")");
+				var marking = horse.getMarking();
+				var id = color.getIndex() + marking.getIndex() << 8;
+				text.add(I18n.translate("gui.act.invView.horse.variant") + ": " + getHorseColorName(color, marking)
+						+ " (" + id + ")");
 			}
 
 			text.add(I18n.translate("gui.act.invView.horse.jump") + ": "
