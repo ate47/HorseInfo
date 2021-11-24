@@ -21,6 +21,7 @@ import net.minecraft.world.entity.animal.Sheep;
 import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import net.minecraft.world.entity.animal.horse.Horse;
 import net.minecraft.world.entity.animal.horse.Variant;
+import net.minecraft.world.entity.animal.horse.Markings;
 import net.minecraft.world.phys.EntityHitResult;
 
 public class HorseDebugMain {
@@ -54,6 +55,23 @@ public class HorseDebugMain {
 		instance = new HorseDebugMain();
 		log("Starting HorseDebug with " + api.getAPIName());
 		return instance;
+	}
+
+	public static String getHorseColorNameDescription(Markings color) {
+		switch (color.getId()) {
+		case 0:
+			return "none";
+		case 1:
+			return "white";
+		case 2:
+			return "white_field";
+		case 3:
+			return "white_dots";
+		case 4:
+			return "black_dots";
+		default:
+			return "unknown";
+		}
 	}
 
 	public static String getHorseColorNameDescription(Variant color) {
@@ -106,8 +124,9 @@ public class HorseDebugMain {
 		}
 	}
 
-	public static String getHorseColorName(Variant color) {
-		return I18n.get("gui.act.invView.horse.variant." + getHorseColorNameDescription(color));
+	public static String getHorseColorName(Variant color, Markings markings) {
+		return I18n.get("gui.act.invView.horse.variant." + getHorseColorNameDescription(color)) + " / "
+				+ I18n.get("gui.act.invView.horse.variant." + getHorseColorNameDescription(markings));
 	}
 
 	public static String getCatColorName(int color) {
@@ -188,8 +207,10 @@ public class HorseDebugMain {
 
 			if (baby instanceof Horse horse) {
 				var color = horse.getVariant();
-				text.add(I18n.get("gui.act.invView.horse.variant") + ": " + getHorseColorName(color) + " ("
-						+ color.getId() + ")");
+				var markings = horse.getMarkings();
+				var id = color.getId() + markings.getId() << 8;
+				text.add(I18n.get("gui.act.invView.horse.variant") + ": " + getHorseColorName(color, markings) + " ("
+						+ id + ")");
 			}
 
 			text.add(I18n.get("gui.act.invView.horse.jump") + ": "
