@@ -126,7 +126,7 @@ public class HorseDebugMain {
 
 	public static String getHorseColorName(Variant color, Markings markings) {
 		return I18n.get("gui.act.invView.horse.variant." + getHorseColorNameDescription(color)) + " / "
-				+ I18n.get("gui.act.invView.horse.variant." + getHorseColorNameDescription(markings));
+				+ I18n.get("gui.act.invView.horse.variant.marking." + getHorseColorNameDescription(markings));
 	}
 
 	public static String getCatColorName(int color) {
