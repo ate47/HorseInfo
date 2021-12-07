@@ -61,6 +61,10 @@ jar {
 publishing {
 	publications {
 		mavenJava(MavenPublication) {
+            groupId project.ext.groupId
+            artifactId project.artifactId
+            version project.ext.projectVersion
+			
 			// add all the jars that should be included when publishing to maven
 			artifact(remapJar) {
 				builtBy remapJar
@@ -69,12 +73,6 @@ publishing {
 				builtBy remapSourcesJar
 			}
 		}
-        mavenJava(MavenPublication) {
-            groupId project.ext.groupId
-            artifactId project.artifactId
-            version project.ext.projectVersion
-            from components.java
-        }
 	}
 
 	// select the repositories you want to publish to
