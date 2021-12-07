@@ -11,7 +11,7 @@ version = project.mod_version
 group = project.maven_group
 
 project.ext.groupId = project.maven_group
-project.ext.projectVersion = "${version}-${project.minecraft_version}"
+project.ext.projectVersion = "${version}-fabric-${project.minecraft_version}"
 
 dependencies {
 	// To change the versions see the gradle.properties file
