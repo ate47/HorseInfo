@@ -11,14 +11,14 @@ apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
 
-group 'fr.atesab.horsedebug'
+group 'fr.atesab'
 version '1.1.1'
 archivesBaseName = 'HorseDebug'
 project.ext.artifactId = "horsedebug"
 
 project.ext.minecraft_version = "1.18"
 project.ext.groupId = group
-project.ext.projectVersion = "${version}-fabric-${project.ext.minecraft_version}"
+project.ext.projectVersion = "${version}-forge-${project.ext.minecraft_version}"
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(17)
 
