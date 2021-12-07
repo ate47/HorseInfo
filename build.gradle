@@ -72,5 +72,13 @@ publishing {
 	repositories {
 		// uncomment to publish to the local maven
 		// mavenLocal()
+        maven {
+            name = "GitHubPackages"
+            url = "https://maven.pkg.github.com/ate47/HorseInfo"
+            credentials {
+                username = System.getenv("USERNAME")
+                password = System.getenv("TOKEN")
+            }
+        }
 	}
 }
