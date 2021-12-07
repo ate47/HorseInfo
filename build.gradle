@@ -70,8 +70,6 @@ publishing {
 
 	// select the repositories you want to publish to
 	repositories {
-		// uncomment to publish to the local maven
-		// mavenLocal()
         maven {
             name = "GitHubPackages"
             url = "https://maven.pkg.github.com/ate47/HorseInfo"
