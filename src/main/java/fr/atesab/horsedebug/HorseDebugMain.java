@@ -167,7 +167,7 @@ public class HorseDebugMain {
 			if (sizeY < 100)
 				sizeY = 100;
 		}
-		var mw = mc.getWindow();
+		Window mw = mc.getWindow();
 		posX += 5;
 		posY += 5;
 		if (posX + sizeX > mw.getScaledWidth())
