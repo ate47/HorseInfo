@@ -3,20 +3,25 @@ package fr.atesab.horsedebug;
 import java.util.List;
 import java.util.Locale;
 
+import com.google.common.collect.Lists;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
-import com.google.common.collect.Lists;
-import com.mojang.blaze3d.systems.RenderSystem;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.ingame.InventoryScreen;
 import net.minecraft.client.resource.language.I18n;
 import net.minecraft.client.util.Window;
 import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.attribute.EntityAttributes;
+import net.minecraft.entity.passive.CatEntity;
 import net.minecraft.entity.passive.HorseBaseEntity;
+import net.minecraft.entity.passive.HorseColor;
+import net.minecraft.entity.passive.HorseEntity;
+import net.minecraft.entity.passive.HorseMarking;
+import net.minecraft.entity.passive.SheepEntity;
 import net.minecraft.util.hit.EntityHitResult;
 import net.minecraft.util.hit.HitResult;
 
@@ -46,12 +51,88 @@ public class HorseDebugMain {
 	 * register an API for HorseDebug
 	 * 
 	 * @throws IllegalStateException
-	 *             if an API is already register for it
+	 *                               if an API is already register for it
 	 */
 	public static HorseDebugMain registerAPI(BuildAPI api) throws IllegalStateException {
 		instance = new HorseDebugMain();
 		log("Starting HorseDebug with " + api.getAPIName());
 		return instance;
+	}
+
+	public static String getHorseColorNameDescription(HorseColor color) {
+		switch (color.getIndex()) {
+			case 0:
+				return "white";
+			case 1:
+				return "creamy";
+			case 2:
+				return "chestnut";
+			case 3:
+				return "brown";
+			case 4:
+				return "black";
+			case 5:
+				return "gray";
+			case 6:
+				return "darkbrown";
+			default:
+				return "unknown";
+		}
+	}
+
+	public static String getHorseColorNameDescription(HorseMarking color) {
+		switch (color.getIndex()) {
+			case 0:
+				return "none";
+			case 1:
+				return "white";
+			case 2:
+				return "white_field";
+			case 3:
+				return "white_dots";
+			case 4:
+				return "black_dots";
+			default:
+				return "unknown";
+		}
+	}
+
+	public static String getCatColorNameDescription(int color) {
+		switch (color) {
+			case 0:
+				return "tabby";
+			case 1:
+				return "black";
+			case 2:
+				return "red";
+			case 3:
+				return "siamese";
+			case 4:
+				return "british_shorthair";
+			case 5:
+				return "calico";
+			case 6:
+				return "persian";
+			case 7:
+				return "ragdoll";
+			case 8:
+				return "white";
+			case 9:
+				return "jellie";
+			case 10:
+				return "all_black";
+			default:
+				return "unknown";
+		}
+	}
+
+	public static String getHorseColorName(HorseColor color, HorseMarking marking) {
+		return I18n.translate("gui.act.invView.horse.variant." + getHorseColorNameDescription(color)) + " / "
+				+ I18n.translate("gui.act.invView.horse.variant.marking." + getHorseColorNameDescription(marking));
+	}
+
+	public static String getCatColorName(int color) {
+		return I18n.translate("gui.act.invView.cat.variant." + getCatColorNameDescription(color));
 	}
 
 	private HorseDebugMain() {
@@ -100,7 +181,6 @@ public class HorseDebugMain {
 			posY1 += (mc.textRenderer.fontHeight + 1);
 		}
 		if (entity != null) {
-			RenderSystem.color3f(1.0F, 1.0F, 1.0F);
 			InventoryScreen.drawEntity(posX + sizeX - 55, posY + 105, 50, 50, 0, entity); // drawEntityOnScreen
 		}
 	}
@@ -108,7 +188,18 @@ public class HorseDebugMain {
 	public String[] getEntityData(LivingEntity entity) {
 		List<String> text = Lists.newArrayList();
 		text.add("\u00a7b" + entity.getDisplayName().asString());
-		if (entity instanceof HorseBaseEntity) {
+
+		if (entity instanceof CatEntity) {
+			CatEntity cat = (CatEntity) entity;
+			var color = cat.getCatType();
+			text.add(I18n.translate("gui.act.invView.horse.variant") + ": " + getCatColorName(color) + " (" + color
+					+ ")");
+		} else if (entity instanceof SheepEntity) {
+			SheepEntity sheep = (SheepEntity) entity;
+			var color = sheep.getColor();
+			text.add(I18n.translate("gui.act.invView.horse.variant") + ": " + color.getName() + " (" + color.getId()
+					+ ")");
+		} else if (entity instanceof HorseBaseEntity) {
 			HorseBaseEntity baby = (HorseBaseEntity) entity;
 
 			double yVelocity = baby.getJumpStrength();
@@ -118,10 +209,20 @@ public class HorseDebugMain {
 				yVelocity -= 0.08;
 				yVelocity *= 0.98;
 			}
-			text.add(I18n.translate("gui.act.invView.horse.jump") + " : "
+
+			if (baby instanceof HorseEntity) {
+				HorseEntity horse = (HorseEntity) baby;
+				var color = horse.getColor();
+				var marking = horse.getMarking();
+				var id = color.getIndex() + marking.getIndex() << 8;
+				text.add(I18n.translate("gui.act.invView.horse.variant") + ": " + getHorseColorName(color, marking)
+						+ " (" + id + ")");
+			}
+
+			text.add(I18n.translate("gui.act.invView.horse.jump") + ": "
 					+ getFormattedText(jumpHeight, BAD_JUMP, EXELLENT_JUMP) + " " + "("
 					+ significantNumbers(baby.getJumpStrength()) + " iu)");
-			text.add(I18n.translate("gui.act.invView.horse.speed") + " : "
+			text.add(I18n.translate("gui.act.invView.horse.speed") + ": "
 					+ getFormattedText(
 							baby.getAttributeInstance(EntityAttributes.GENERIC_MOVEMENT_SPEED).getBaseValue() * 43,
 							BAD_SPEED, EXELLENT_SPEED)
@@ -129,7 +230,7 @@ public class HorseDebugMain {
 					+ significantNumbers(
 							baby.getAttributeInstance(EntityAttributes.GENERIC_MOVEMENT_SPEED).getBaseValue())
 					+ " iu)");
-			text.add(I18n.translate("gui.act.invView.horse.health") + " : "
+			text.add(I18n.translate("gui.act.invView.horse.health") + ": "
 					+ getFormattedText((baby.getMaxHealth() / 2D), BAD_HP, EXELLENT_HP) + " HP");
 		}
 		return text.stream().toArray(String[]::new);
