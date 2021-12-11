@@ -22,6 +22,7 @@ import net.minecraft.entity.passive.HorseColor;
 import net.minecraft.entity.passive.HorseEntity;
 import net.minecraft.entity.passive.HorseMarking;
 import net.minecraft.entity.passive.SheepEntity;
+import net.minecraft.util.DyeColor;
 import net.minecraft.util.hit.EntityHitResult;
 import net.minecraft.util.hit.HitResult;
 
@@ -191,12 +192,12 @@ public class HorseDebugMain {
 
 		if (entity instanceof CatEntity) {
 			CatEntity cat = (CatEntity) entity;
-			var color = cat.getCatType();
+			int color = cat.getCatType();
 			text.add(I18n.translate("gui.act.invView.horse.variant") + ": " + getCatColorName(color) + " (" + color
 					+ ")");
 		} else if (entity instanceof SheepEntity) {
 			SheepEntity sheep = (SheepEntity) entity;
-			var color = sheep.getColor();
+			DyeColor color = sheep.getColor();
 			text.add(I18n.translate("gui.act.invView.horse.variant") + ": " + color.getName() + " (" + color.getId()
 					+ ")");
 		} else if (entity instanceof HorseBaseEntity) {
@@ -212,9 +213,9 @@ public class HorseDebugMain {
 
 			if (baby instanceof HorseEntity) {
 				HorseEntity horse = (HorseEntity) baby;
-				var color = horse.getColor();
-				var marking = horse.getMarking();
-				var id = color.getIndex() + marking.getIndex() << 8;
+				HorseColor color = horse.getColor();
+				HorseMarking marking = horse.getMarking();
+				int id = color.getIndex() + marking.getIndex() << 8;
 				text.add(I18n.translate("gui.act.invView.horse.variant") + ": " + getHorseColorName(color, marking)
 						+ " (" + id + ")");
 			}
