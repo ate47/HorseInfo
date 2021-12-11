@@ -152,12 +152,13 @@ public class HorseDebugMain {
 			throw new IllegalStateException("An API is already register for this mod!");
 	}
 
-	public static final double BAD_HP = 10; // min: 7.5
-	public static final double BAD_JUMP = 2.75; // min: 1.2
-	public static final double BAD_SPEED = 9; // min: ~7?
-	public static final double EXELLENT_HP = 14; // max: 15
-	public static final double EXELLENT_JUMP = 5; // max: 5.5?
-	public static final double EXELLENT_SPEED = 13;// max: 14.1?
+	public static final StatValue STAT_HEALTH = StatValue.builder().base(15.0).add(8).add(9).showScale(0.5)
+			.build();
+	public static final StatValue STAT_JUMP = StatValue.builder().base(0.4000000059604645D).add(0.2).add(0.2).add(
+			0.2).showFunc(d -> -0.2 * Math.pow(d, 3) + 3.7 * Math.pow(d, 2) + 2.1 * d - 0.4)
+			.build();
+	public static final StatValue STAT_SPEED = StatValue.builder().base(0.44999998807907104D).add(0.3).add(0.3).add(0.3)
+			.scale(0.25).showScale(43).build();
 
 	public void drawInventory(MatrixStack stack, MinecraftClient mc, int posX, int posY, String[] addText,
 			LivingEntity entity) {
@@ -197,18 +198,6 @@ public class HorseDebugMain {
 		}
 	}
 
-	public double getJumpHeight(HorseBaseEntity horse) {
-		double yVelocity = horse.getJumpStrength();
-		double jumpHeight = 0;
-		while (yVelocity > 0) {
-			jumpHeight += yVelocity;
-			yVelocity -= 0.08;
-			yVelocity *= 0.98;
-		}
-
-		return jumpHeight;
-	}
-
 	public String[] getEntityData(LivingEntity entity) {
 		List<String> text = Lists.newArrayList();
 		text.add("\u00a7b" + entity.getDisplayName().asString());
@@ -236,34 +225,23 @@ public class HorseDebugMain {
 			}
 
 			text.add(I18n.translate("gui.act.invView.horse.jump") + ": "
-					+ getFormattedText(getJumpHeight(
-							baby), BAD_JUMP, EXELLENT_JUMP)
+					+ STAT_JUMP.getFormattedText(baby.getJumpStrength())
 					+ " " + "("
 					+ significantNumbers(baby.getJumpStrength()) + " iu)");
 			text.add(I18n.translate("gui.act.invView.horse.speed") + ": "
-					+ getFormattedText(
-							baby.getAttributeInstance(EntityAttributes.GENERIC_MOVEMENT_SPEED).getBaseValue() * 43,
-							BAD_SPEED, EXELLENT_SPEED)
+					+ STAT_SPEED.getFormattedText(baby.getAttributeInstance(EntityAttributes.GENERIC_MOVEMENT_SPEED)
+							.getBaseValue())
 					+ " m/s " + "("
 					+ significantNumbers(
 							baby.getAttributeInstance(EntityAttributes.GENERIC_MOVEMENT_SPEED).getBaseValue())
 					+ " iu)");
 			text.add(I18n.translate("gui.act.invView.horse.health") + ": "
-					+ getFormattedText((baby.getMaxHealth() / 2D), BAD_HP, EXELLENT_HP) + " HP");
+					+ STAT_HEALTH.getFormattedText((baby.getMaxHealth())) + " HP");
 		}
 		return text.stream().toArray(String[]::new);
 	}
 
-	private static String getFormattedText(double value, double bad, double exellent) {
-		return getFormattedText(value, bad, exellent, "", false);
-	}
-
-	private static String getFormattedText(double value, double bad, double exellent, String unit, boolean stared) {
-		return (value >= exellent ? Formatting.GOLD : (value < bad) ? Formatting.RED : Formatting.GREEN).toString()
-				+ significantNumbers(value) + unit + (stared ? (Formatting.YELLOW + " " + UTF8_STAR) : "");
-	}
-
-	private static String significantNumbers(double d) {
+	static String significantNumbers(double d) {
 		boolean a;
 		if (a = d < 0) {
 			d *= -1;
@@ -306,9 +284,7 @@ public class HorseDebugMain {
 	 * @return a score
 	 */
 	public double score(double jump, double health, double speed) {
-		return (jump - (EXELLENT_JUMP + BAD_JUMP) / 2) / (EXELLENT_JUMP - BAD_JUMP)
-				+ (health / 2D - (EXELLENT_HP + BAD_HP) / 2) / (EXELLENT_HP - BAD_HP)
-				+ (speed - (EXELLENT_SPEED + BAD_SPEED) / 2) / (EXELLENT_SPEED - BAD_SPEED);
+		return STAT_JUMP.normalized(jump) + STAT_HEALTH.normalized(health) + STAT_SPEED.normalized(speed);
 	}
 
 	public void renderWorld(Iterable<Entity> entities, MatrixStack matrices, VertexConsumerProvider vertexConsumers,
@@ -332,9 +308,9 @@ public class HorseDebugMain {
 
 				horses.add(h);
 
-				double jump = getJumpHeight(h);
+				double jump = h.getJumpStrength();
 				double health = h.getMaxHealth();
-				double speed = h.getAttributeInstance(EntityAttributes.GENERIC_MOVEMENT_SPEED).getBaseValue() * 43;
+				double speed = h.getAttributeInstance(EntityAttributes.GENERIC_MOVEMENT_SPEED).getBaseValue();
 				double score = score(jump, health, speed);
 
 				if (jump > bestJump)
@@ -352,17 +328,15 @@ public class HorseDebugMain {
 		Text[] texts = new Text[4];
 
 		for (HorseBaseEntity h : horses) {
-			double jump = getJumpHeight(h);
+			double jump = h.getJumpStrength();
 			double health = h.getMaxHealth();
-			double speed = h.getAttributeInstance(EntityAttributes.GENERIC_MOVEMENT_SPEED).getBaseValue() * 43;
+			double speed = h.getAttributeInstance(EntityAttributes.GENERIC_MOVEMENT_SPEED).getBaseValue();
 			double score = score(jump, health, speed);
 
-			texts[0] = new LiteralText(getFormattedText(
-					jump, BAD_JUMP, EXELLENT_JUMP, " b", jump >= bestJump));
-			texts[1] = new LiteralText(getFormattedText(
-					health, BAD_HP, EXELLENT_HP, " " + Formatting.RED + UTF8_HEART, health >= bestHealth));
-			texts[2] = new LiteralText(getFormattedText(
-					speed, BAD_SPEED, EXELLENT_SPEED, " m/s", speed >= bestSpeed));
+			texts[0] = new LiteralText(STAT_JUMP.getFormattedText(jump, " b", jump >= bestJump));
+			texts[1] = new LiteralText(
+					STAT_HEALTH.getFormattedText(health, " " + Formatting.RED + UTF8_HEART, health >= bestHealth));
+			texts[2] = new LiteralText(STAT_SPEED.getFormattedText(speed, " m/s", speed >= bestSpeed));
 
 			if (score >= bestScore) {
 				texts[3] = new LiteralText(Formatting.YELLOW + " " + UTF8_STAR);
@@ -370,11 +344,19 @@ public class HorseDebugMain {
 				texts[3] = null;
 			}
 
-			float location = h.getHeight() + 0.5F;
+			float textHeight = h.getHeight() + 0.5F;
+
+			Entity e = h;
+
+			while (e.getVehicle() != null) {
+				e = e.getVehicle();
+			}
+
+			double textY = e.getY();
+
 			matrices.push();
-			matrices.translate(h.getX() - camera.getPos().x, h.getY() - camera.getPos().y,
+			matrices.translate(h.getX() - camera.getPos().x, textY - camera.getPos().y + textHeight,
 					h.getZ() - camera.getPos().z);
-			matrices.translate(0.0D, (double) location, 0.0D);
 			matrices.multiply(camera.getRotation());
 			matrices.scale(-0.025F, -0.025F, 0.025F);
 			Matrix4f matrix4f = matrices.peek().getModel();
