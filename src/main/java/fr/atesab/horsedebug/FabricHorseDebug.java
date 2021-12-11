@@ -23,6 +23,7 @@ public class FabricHorseDebug implements BuildAPI, HudRenderCallback, ClientModI
 	@Override
 	public void onInitializeClient() {
 		HudRenderCallback.EVENT.register(this);
+		WorldRenderEvents.AFTER_ENTITIES.register(this);
 	}
 
 	@Override
@@ -32,6 +33,6 @@ public class FabricHorseDebug implements BuildAPI, HudRenderCallback, ClientModI
 
 	@Override
 	public void afterEntities(WorldRenderContext context) {
-		mod.renderWorld(context.world().getEntities());
+		mod.renderWorld(context.world().getEntities(), context.matrixStack(), context.consumers(), context.camera());
 	}
 }

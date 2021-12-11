@@ -1,5 +1,6 @@
 package fr.atesab.horsedebug;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -9,7 +10,10 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.screen.ingame.InventoryScreen;
+import net.minecraft.client.render.Camera;
+import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.resource.language.I18n;
 import net.minecraft.client.util.Window;
 import net.minecraft.client.util.math.MatrixStack;
@@ -22,11 +26,18 @@ import net.minecraft.entity.passive.HorseColor;
 import net.minecraft.entity.passive.HorseEntity;
 import net.minecraft.entity.passive.HorseMarking;
 import net.minecraft.entity.passive.SheepEntity;
+import net.minecraft.text.LiteralText;
+import net.minecraft.text.StringVisitable;
+import net.minecraft.text.Text;
 import net.minecraft.util.DyeColor;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.hit.EntityHitResult;
 import net.minecraft.util.hit.HitResult;
+import net.minecraft.util.math.Matrix4f;
 
 public class HorseDebugMain {
+	public static final String UTF8_STAR = "\u2B50";
+	public static final String UTF8_HEART = "\u2764";
 	private static final Logger log = LogManager.getLogger("HorseDebug");
 	private static HorseDebugMain instance;
 
@@ -186,6 +197,18 @@ public class HorseDebugMain {
 		}
 	}
 
+	public double getJumpHeight(HorseBaseEntity horse) {
+		double yVelocity = horse.getJumpStrength();
+		double jumpHeight = 0;
+		while (yVelocity > 0) {
+			jumpHeight += yVelocity;
+			yVelocity -= 0.08;
+			yVelocity *= 0.98;
+		}
+
+		return jumpHeight;
+	}
+
 	public String[] getEntityData(LivingEntity entity) {
 		List<String> text = Lists.newArrayList();
 		text.add("\u00a7b" + entity.getDisplayName().asString());
@@ -203,14 +226,6 @@ public class HorseDebugMain {
 		} else if (entity instanceof HorseBaseEntity) {
 			HorseBaseEntity baby = (HorseBaseEntity) entity;
 
-			double yVelocity = baby.getJumpStrength();
-			double jumpHeight = 0;
-			while (yVelocity > 0) {
-				jumpHeight += yVelocity;
-				yVelocity -= 0.08;
-				yVelocity *= 0.98;
-			}
-
 			if (baby instanceof HorseEntity) {
 				HorseEntity horse = (HorseEntity) baby;
 				HorseColor color = horse.getColor();
@@ -221,7 +236,9 @@ public class HorseDebugMain {
 			}
 
 			text.add(I18n.translate("gui.act.invView.horse.jump") + ": "
-					+ getFormattedText(jumpHeight, BAD_JUMP, EXELLENT_JUMP) + " " + "("
+					+ getFormattedText(getJumpHeight(
+							baby), BAD_JUMP, EXELLENT_JUMP)
+					+ " " + "("
 					+ significantNumbers(baby.getJumpStrength()) + " iu)");
 			text.add(I18n.translate("gui.act.invView.horse.speed") + ": "
 					+ getFormattedText(
@@ -238,8 +255,12 @@ public class HorseDebugMain {
 	}
 
 	private static String getFormattedText(double value, double bad, double exellent) {
-		return new String(new char[] { '\u00a7', ((value > exellent) ? '6' : (value < bad) ? 'c' : 'a') })
-				+ significantNumbers(value);
+		return getFormattedText(value, bad, exellent, "", false);
+	}
+
+	private static String getFormattedText(double value, double bad, double exellent, String unit, boolean stared) {
+		return (value >= exellent ? Formatting.GOLD : (value < bad) ? Formatting.RED : Formatting.GREEN).toString()
+				+ significantNumbers(value) + unit + (stared ? (Formatting.YELLOW + " " + UTF8_STAR) : "");
 	}
 
 	private static String significantNumbers(double d) {
@@ -276,4 +297,103 @@ public class HorseDebugMain {
 		}
 	}
 
+	/**
+	 * sum the 3 normalized values of jump/health/speed
+	 * 
+	 * @param jump   the jump power
+	 * @param health the health
+	 * @param speed  the speed
+	 * @return a score
+	 */
+	public double score(double jump, double health, double speed) {
+		return (jump - (EXELLENT_JUMP + BAD_JUMP) / 2) / (EXELLENT_JUMP - BAD_JUMP)
+				+ (health / 2D - (EXELLENT_HP + BAD_HP) / 2) / (EXELLENT_HP - BAD_HP)
+				+ (speed - (EXELLENT_SPEED + BAD_SPEED) / 2) / (EXELLENT_SPEED - BAD_SPEED);
+	}
+
+	public void renderWorld(Iterable<Entity> entities, MatrixStack matrices, VertexConsumerProvider vertexConsumers,
+			Camera camera) {
+		List<HorseBaseEntity> horses = new ArrayList<>();
+		double bestScore = 0;
+		double bestJump = 0;
+		double bestSpeed = 0;
+		double bestHealth = 0;
+
+		MinecraftClient mc = MinecraftClient.getInstance();
+
+		for (Entity entity : entities)
+			if (entity instanceof HorseBaseEntity) {
+				HorseBaseEntity h = (HorseBaseEntity) entity;
+
+				double distance = mc.player.getPos().squaredDistanceTo(h.getPos());
+
+				if (distance > 4096.0D)
+					continue;
+
+				horses.add(h);
+
+				double jump = getJumpHeight(h);
+				double health = h.getMaxHealth();
+				double speed = h.getAttributeInstance(EntityAttributes.GENERIC_MOVEMENT_SPEED).getBaseValue() * 43;
+				double score = score(jump, health, speed);
+
+				if (jump > bestJump)
+					bestJump = jump;
+				if (health > bestHealth)
+					bestHealth = health;
+				if (speed > bestSpeed)
+					bestSpeed = speed;
+				if (score > bestScore)
+					bestScore = score;
+			}
+		TextRenderer textRenderer = mc.textRenderer;
+		float opacity = mc.options.getTextBackgroundOpacity(0.25F);
+
+		Text[] texts = new Text[4];
+
+		for (HorseBaseEntity h : horses) {
+			double jump = getJumpHeight(h);
+			double health = h.getMaxHealth();
+			double speed = h.getAttributeInstance(EntityAttributes.GENERIC_MOVEMENT_SPEED).getBaseValue() * 43;
+			double score = score(jump, health, speed);
+
+			texts[0] = new LiteralText(getFormattedText(
+					jump, BAD_JUMP, EXELLENT_JUMP, " b", jump >= bestJump));
+			texts[1] = new LiteralText(getFormattedText(
+					health, BAD_HP, EXELLENT_HP, " " + Formatting.RED + UTF8_HEART, health >= bestHealth));
+			texts[2] = new LiteralText(getFormattedText(
+					speed, BAD_SPEED, EXELLENT_SPEED, " m/s", speed >= bestSpeed));
+
+			if (score >= bestScore) {
+				texts[3] = new LiteralText(Formatting.YELLOW + " " + UTF8_STAR);
+			} else {
+				texts[3] = null;
+			}
+
+			float location = h.getHeight() + 0.5F;
+			matrices.push();
+			matrices.translate(h.getX() - camera.getPos().x, h.getY() - camera.getPos().y,
+					h.getZ() - camera.getPos().z);
+			matrices.translate(0.0D, (double) location, 0.0D);
+			matrices.multiply(camera.getRotation());
+			matrices.scale(-0.025F, -0.025F, 0.025F);
+			Matrix4f matrix4f = matrices.peek().getModel();
+			int background = (int) (opacity * 255.0F) << 24;
+			int y = (h.hasCustomName() ? -(textRenderer.fontHeight + 4) : 0);
+			for (Text text : texts) {
+				if (text == null)
+					continue;
+
+				float x = (float) (-textRenderer.getWidth((StringVisitable) text) / 2);
+				textRenderer.draw(text,
+						x, (float) y, 0x22FFFFFF, false, matrix4f, vertexConsumers, true, background, 15728880);
+				textRenderer.draw(text,
+						x, (float) y, 0xffFFFFFF, false, matrix4f, vertexConsumers, false, 0, 15728880);
+
+				y -= textRenderer.fontHeight + 2;
+			}
+
+			matrices.pop();
+		}
+	}
 }
