@@ -1,6 +1,10 @@
 package fr.atesab.horsedebug;
 
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.world.entity.Entity;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
+import net.minecraftforge.client.event.RenderLevelLastEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent.ElementType;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -26,5 +30,16 @@ public class ForgeHorseDebug implements BuildAPI {
 	@Override
 	public String getAPIName() {
 		return "Forge";
+	}
+
+	@SubscribeEvent
+	public void renderWordEvent(RenderLevelLastEvent ev) {
+		Minecraft mc = Minecraft.getInstance();
+		ClientLevel level = mc.level;
+		if (level == null) {
+			return;
+		}
+
+		mod.renderWorld(level.entitiesForRendering(), ev.getPoseStack(), mc.gameRenderer.getMainCamera(), ev.getPartialTick(), mc.renderBuffers().bufferSource());
 	}
 }
