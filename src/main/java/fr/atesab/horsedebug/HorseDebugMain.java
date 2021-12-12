@@ -388,8 +388,8 @@ public class HorseDebugMain {
 
 			Entity e = h;
 
-			while (e.getFirstPassenger() != null) {
-				e = e.getFirstPassenger();
+			while (!e.getPassengerList().isEmpty()) {
+				e = e.getPassengerList().get(0);
 			}
 
 			double textY = e.getY();
