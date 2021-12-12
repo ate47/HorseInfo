@@ -177,10 +177,11 @@ public class HorseDebugMain {
 	}
 
 	public void executeKeys() {
-		if (key3DOverlay.isPressed()) {
+		if (key3DOverlay.wasPressed()) {
 			cfg.show3d ^= true;
 			saveConfig();
 			MinecraftClient.getInstance().player.sendMessage(new TranslatableText("gui.act.invView.horse.3dhud")
+					.append(new LiteralText(": ").formatted(Formatting.DARK_GRAY))
 					.append(new TranslatableText(
 							cfg.show3d ? "gui.act.invView.horse.enabled" : "gui.act.invView.horse.disabled")
 									.formatted(cfg.show3d ? Formatting.GREEN : Formatting.RED)),
