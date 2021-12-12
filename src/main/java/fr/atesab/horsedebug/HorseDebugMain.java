@@ -1,5 +1,6 @@
 package fr.atesab.horsedebug;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -8,10 +9,13 @@ import com.google.common.collect.Lists;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.lwjgl.glfw.GLFW;
 
+import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.screen.ingame.InventoryScreen;
+import net.minecraft.client.options.KeyBinding;
 import net.minecraft.client.render.Camera;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.resource.language.I18n;
@@ -29,6 +33,7 @@ import net.minecraft.entity.passive.SheepEntity;
 import net.minecraft.text.LiteralText;
 import net.minecraft.text.StringVisitable;
 import net.minecraft.text.Text;
+import net.minecraft.text.TranslatableText;
 import net.minecraft.util.DyeColor;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.hit.EntityHitResult;
@@ -147,9 +152,40 @@ public class HorseDebugMain {
 		return I18n.translate("gui.act.invView.cat.variant." + getCatColorNameDescription(color));
 	}
 
+	private HorseConfig cfg = new HorseConfig();
+	private KeyBinding key3DOverlay;
+
 	private HorseDebugMain() {
 		if (isAPIRegister())
 			throw new IllegalStateException("An API is already register for this mod!");
+	}
+
+	public void loadConfig() {
+		cfg = HorseConfig.load(new File(MinecraftClient.getInstance().runDirectory, "horse.json"));
+		saveConfig();
+	}
+
+	public void saveConfig() {
+		cfg.save(new File(MinecraftClient.getInstance().runDirectory, "horse.json"));
+	}
+
+	public void init() {
+		loadConfig();
+		key3DOverlay = new KeyBinding("gui.act.invView.horse.3dhud.toggle", GLFW.GLFW_KEY_K,
+				"key.categories.horsedebug");
+		KeyBindingHelper.registerKeyBinding(key3DOverlay);
+	}
+
+	public void executeKeys() {
+		if (key3DOverlay.isPressed()) {
+			cfg.show3d ^= true;
+			saveConfig();
+			MinecraftClient.getInstance().player.sendMessage(new TranslatableText("gui.act.invView.horse.3dhud")
+					.append(new TranslatableText(
+							cfg.show3d ? "gui.act.invView.horse.enabled" : "gui.act.invView.horse.disabled")
+									.formatted(cfg.show3d ? Formatting.GREEN : Formatting.RED)),
+					false);
+		}
 	}
 
 	public static final StatValue STAT_HEALTH = StatValue.builder().base(15.0).add(8).add(9).showScale(0.5)
@@ -289,6 +325,9 @@ public class HorseDebugMain {
 
 	public void renderWorld(Iterable<Entity> entities, MatrixStack matrices, VertexConsumerProvider vertexConsumers,
 			Camera camera) {
+		if (!cfg.show3d)
+			return;
+
 		List<HorseBaseEntity> horses = new ArrayList<>();
 		double bestScore = 0;
 		double bestJump = 0;

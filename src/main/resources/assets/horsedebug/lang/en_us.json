@@ -1,4 +1,10 @@
 {
+  "key.categories.horsedebug": "Horse Debug",
+  "gui.act.invView.horse.3dhud": "3D Horse overlay",
+  "gui.act.invView.horse.3dhud.toggle": "Toggle 3D Horse overlay",
+  "gui.act.invView.horse.enabled": "Enabled",
+  "gui.act.invView.horse.disabled": "Disabled",
+
   "gui.act.invView.horse.jump": "Jump",
   "gui.act.invView.horse.speed": "Speed",
   "gui.act.invView.horse.health": "Health",
