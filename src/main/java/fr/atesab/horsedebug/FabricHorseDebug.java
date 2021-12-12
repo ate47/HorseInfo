@@ -1,6 +1,7 @@
 package fr.atesab.horsedebug;
 
 import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.EndTick;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
@@ -26,6 +27,7 @@ public class FabricHorseDebug implements BuildAPI, HudRenderCallback, ClientModI
 	public void onInitializeClient() {
 		HudRenderCallback.EVENT.register(this);
 		WorldRenderEvents.AFTER_ENTITIES.register(this);
+		ClientTickEvents.END_CLIENT_TICK.register(this);
 		mod.init();
 	}
 
