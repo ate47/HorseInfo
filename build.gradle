@@ -16,7 +16,8 @@ version '1.1.1'
 archivesBaseName = 'HorseDebug'
 project.ext.artifactId = "horsedebug"
 
-project.ext.minecraft_version = "1.18"
+project.ext.minecraft_version = "1.19"
+project.ext.minecraft_mapping = "1.19-41.0.62"
 project.ext.groupId = group
 project.ext.projectVersion = "${version}-forge-${project.ext.minecraft_version}"
 
@@ -90,7 +91,7 @@ minecraft {
 }
 
 dependencies {
-    minecraft 'net.minecraftforge:forge:1.18-38.0.14'
+    minecraft 'net.minecraftforge:forge:' + project.ext.minecraft_mapping
 }
 
 // Example for how to get properties into the manifest for reading by the runtime..
@@ -133,4 +134,8 @@ publishing {
             }
         }
     }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8' // Use the UTF-8 charset for Java compilation
 }

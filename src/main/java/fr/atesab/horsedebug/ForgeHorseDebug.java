@@ -9,7 +9,7 @@ import net.minecraftforge.fml.common.Mod;
 @Mod("horsedebug")
 public class ForgeHorseDebug implements BuildAPI {
 
-	private HorseDebugMain mod;
+	private final HorseDebugMain mod;
 
 	public ForgeHorseDebug() {
 		this.mod = HorseDebugMain.registerAPI(this);
@@ -18,9 +18,9 @@ public class ForgeHorseDebug implements BuildAPI {
 
 	@SubscribeEvent
 	public void onRenderOverlay(RenderGameOverlayEvent.Post ev) {
-		if (ev.getType() == ElementType.DEBUG)
-			if (mod != null)
-				mod.renderOverlay(ev.getMatrixStack());
+		if (ev.getType() == ElementType.DEBUG && mod != null) {
+			mod.renderOverlay(ev.getPoseStack());
+		}
 	}
 
 	@Override

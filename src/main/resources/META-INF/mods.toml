@@ -1,7 +1,7 @@
 modLoader="javafml"
 loaderVersion="[37,)"
 issueTrackerURL="https://github.com/ate47/HorseInfo/issues"
-license="GPL"
+license="GPL 3"
 [[mods]]
 	modId="horsedebug"
 	version="1.1.1"
@@ -14,6 +14,6 @@ license="GPL"
 [[dependencies.horsedebug]]
     modId="minecraft"
     mandatory=true
-    versionRange="[1.17,1.19)"
+    versionRange="[1.19,1.20)"
     ordering="NONE"
     side="BOTH"

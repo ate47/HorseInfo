@@ -9,5 +9,5 @@ public interface BuildAPI {
 	/**
 	 * the API name (Rift, Forge, (...))
 	 */
-	public String getAPIName();
+	String getAPIName();
 }
