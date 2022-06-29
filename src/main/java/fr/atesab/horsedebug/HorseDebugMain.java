@@ -1,13 +1,6 @@
 package fr.atesab.horsedebug;
 
-import java.util.List;
-import java.util.Locale;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import com.google.common.collect.Lists;
-
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.ingame.InventoryScreen;
 import net.minecraft.client.resource.language.I18n;
@@ -16,14 +9,16 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.attribute.EntityAttributes;
-import net.minecraft.entity.passive.CatEntity;
-import net.minecraft.entity.passive.HorseBaseEntity;
-import net.minecraft.entity.passive.HorseColor;
-import net.minecraft.entity.passive.HorseEntity;
-import net.minecraft.entity.passive.HorseMarking;
-import net.minecraft.entity.passive.SheepEntity;
+import net.minecraft.entity.passive.*;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.hit.EntityHitResult;
 import net.minecraft.util.hit.HitResult;
+import net.minecraft.util.registry.Registry;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.util.List;
+import java.util.Locale;
 
 public class HorseDebugMain {
 	private static final Logger log = LogManager.getLogger("HorseDebug");
@@ -59,70 +54,27 @@ public class HorseDebugMain {
 	}
 
 	public static String getHorseColorNameDescription(HorseColor color) {
-		switch (color.getIndex()) {
-		case 0:
-			return "white";
-		case 1:
-			return "creamy";
-		case 2:
-			return "chestnut";
-		case 3:
-			return "brown";
-		case 4:
-			return "black";
-		case 5:
-			return "gray";
-		case 6:
-			return "darkbrown";
-		default:
-			return "unknown";
-		}
+		return switch (color.getIndex()) {
+			case 0 -> "white";
+			case 1 -> "creamy";
+			case 2 -> "chestnut";
+			case 3 -> "brown";
+			case 4 -> "black";
+			case 5 -> "gray";
+			case 6 -> "darkbrown";
+			default -> "unknown";
+		};
 	}
 
 	public static String getHorseColorNameDescription(HorseMarking color) {
-		switch (color.getIndex()) {
-		case 0:
-			return "none";
-		case 1:
-			return "white";
-		case 2:
-			return "white_field";
-		case 3:
-			return "white_dots";
-		case 4:
-			return "black_dots";
-		default:
-			return "unknown";
-		}
-	}
-
-	public static String getCatColorNameDescription(int color) {
-		switch (color) {
-		case 0:
-			return "tabby";
-		case 1:
-			return "black";
-		case 2:
-			return "red";
-		case 3:
-			return "siamese";
-		case 4:
-			return "british_shorthair";
-		case 5:
-			return "calico";
-		case 6:
-			return "persian";
-		case 7:
-			return "ragdoll";
-		case 8:
-			return "white";
-		case 9:
-			return "jellie";
-		case 10:
-			return "all_black";
-		default:
-			return "unknown";
-		}
+		return switch (color.getIndex()) {
+			case 0 -> "none";
+			case 1 -> "white";
+			case 2 -> "white_field";
+			case 3 -> "white_dots";
+			case 4 -> "black_dots";
+			default -> "unknown";
+		};
 	}
 
 	public static String getHorseColorName(HorseColor color, HorseMarking marking) {
@@ -130,8 +82,12 @@ public class HorseDebugMain {
 				+ I18n.translate("gui.act.invView.horse.variant.marking." + getHorseColorNameDescription(marking));
 	}
 
-	public static String getCatColorName(int color) {
-		return I18n.translate("gui.act.invView.cat.variant." + getCatColorNameDescription(color));
+	public static String getCatColorName(CatVariant color) {
+		Identifier id = Registry.CAT_VARIANT.getId(color);
+		if (id == null) {
+			return I18n.translate("gui.act.invView.cat.variant.unknown");
+		}
+		return I18n.translate("gui.act.invView.cat.variant." + id.getPath());
 	}
 
 	private HorseDebugMain() {
@@ -153,12 +109,9 @@ public class HorseDebugMain {
 			return;
 		int sizeX = 0;
 		int sizeY = 0;
-		int itemSize = 20;
-		if (mc.textRenderer.fontHeight * 2 + 2 > itemSize)
-			itemSize = mc.textRenderer.fontHeight * 2 + 2;
-		for (int i = 0; i < addText.length; i++) {
+		for (String s : addText) {
 			sizeY += mc.textRenderer.fontHeight + 1;
-			int a = mc.textRenderer.getWidth(addText[i]) + 10;
+			int a = mc.textRenderer.getWidth(s) + 10;
 			if (a > sizeX)
 				sizeX = a;
 		}
@@ -175,8 +128,8 @@ public class HorseDebugMain {
 		if (posY + sizeY > mw.getScaledHeight())
 			posY -= sizeY + 10;
 		int posY1 = posY + 5;
-		for (int i = 0; i < addText.length; i++) {
-			mc.textRenderer.drawWithShadow(stack, addText[i], posX + 5, posY1, 0xffffffff);
+		for (String s : addText) {
+			mc.textRenderer.drawWithShadow(stack, s, posX + 5, posY1, 0xffffffff);
 			posY1 += (mc.textRenderer.fontHeight + 1);
 		}
 		if (entity != null) {
@@ -186,18 +139,18 @@ public class HorseDebugMain {
 
 	public String[] getEntityData(LivingEntity entity) {
 		List<String> text = Lists.newArrayList();
-		text.add("\u00a7b" + entity.getDisplayName().asString());
+		text.add("\u00a7b" + entity.getDisplayName().getString());
 		text.add("\u00a77" + EntityType.getId(entity.getType()).toString());
 
 		if (entity instanceof CatEntity cat) {
-			var color = cat.getCatType();
-			text.add(I18n.translate("gui.act.invView.horse.variant") + ": " + getCatColorName(color) + " (" + color
+			var color = cat.getVariant();
+			text.add(I18n.translate("gui.act.invView.horse.variant") + ": " + getCatColorName(color) + " (" + Registry.CAT_VARIANT.getId(color)
 					+ ")");
 		} else if (entity instanceof SheepEntity sheep) {
 			var color = sheep.getColor();
 			text.add(I18n.translate("gui.act.invView.horse.variant") + ": " + color.getName() + " (" + color.getId()
 					+ ")");
-		} else if (entity instanceof HorseBaseEntity baby) {
+		} else if (entity instanceof AbstractHorseEntity baby) {
 
 			double yVelocity = baby.getJumpStrength();
 			double jumpHeight = 0;
@@ -229,7 +182,7 @@ public class HorseDebugMain {
 			text.add(I18n.translate("gui.act.invView.horse.health") + ": "
 					+ getFormattedText((baby.getMaxHealth() / 2D), BAD_HP, EXELLENT_HP) + " HP");
 		}
-		return text.stream().toArray(String[]::new);
+		return text.toArray(String[]::new);
 	}
 
 	private static String getFormattedText(double value, double bad, double exellent) {
@@ -238,8 +191,8 @@ public class HorseDebugMain {
 	}
 
 	private static String significantNumbers(double d) {
-		boolean a;
-		if (a = d < 0) {
+		boolean negative = d < 0;
+		if (negative) {
 			d *= -1;
 		}
 		int d1 = (int) (d);
@@ -249,7 +202,7 @@ public class HorseDebugMain {
 			s = s.substring(1);
 		if (s.contains("E+"))
 			s = String.format(Locale.US, "%.0f", Double.valueOf(String.format("%.3G", d)));
-		return (a ? "-" : "") + d1 + s;
+		return (negative ? "-" : "") + d1 + s;
 	}
 
 	public void renderOverlay(MatrixStack stack) {
@@ -257,13 +210,11 @@ public class HorseDebugMain {
 		if (!mc.options.debugEnabled)
 			return;
 		Window mw = mc.getWindow();
-		if (mc.player.getVehicle() instanceof HorseBaseEntity) {
-			HorseBaseEntity baby = (HorseBaseEntity) mc.player.getVehicle();
+		if (mc.player.getVehicle() instanceof AbstractHorseEntity baby) {
 			drawInventory(stack, mc, mw.getScaledWidth(), mw.getScaledHeight(), getEntityData(baby), baby);
 		} else {
 			HitResult obj = mc.crosshairTarget;
-			if (obj != null && obj instanceof EntityHitResult) {
-				EntityHitResult eo = (EntityHitResult) obj;
+			if (obj instanceof EntityHitResult eo) {
 				if (eo.getEntity() instanceof LivingEntity)
 					drawInventory(stack, mc, mw.getScaledWidth(), mw.getScaledHeight(),
 							getEntityData((LivingEntity) eo.getEntity()), (LivingEntity) eo.getEntity());
