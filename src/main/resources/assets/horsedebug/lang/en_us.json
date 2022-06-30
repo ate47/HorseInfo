@@ -31,5 +31,8 @@
   "gui.act.invView.cat.variant.white": "White",
   "gui.act.invView.cat.variant.jellie": "Jellie",
   "gui.act.invView.cat.variant.all_black": "All black",
-  "gui.act.invView.cat.variant.unknown": "Unknown"
+  "gui.act.invView.cat.variant.unknown": "Unknown",
+
+  "key.categories.horsedebug": "Horse Debug",
+  "gui.act.invView.horse": "Toggle 3D overlay"
 }

@@ -12,7 +12,7 @@ apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
 
 group 'fr.atesab'
-version '1.2.3'
+version '1.2.4'
 archivesBaseName = 'HorseDebug'
 project.ext.artifactId = "horsedebug"
 
