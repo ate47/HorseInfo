@@ -1,13 +1,16 @@
 package fr.atesab.horsedebug;
 
 import com.google.common.collect.Lists;
+import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.screen.ingame.InventoryScreen;
 import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.render.Camera;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.resource.language.I18n;
+import net.minecraft.client.util.InputUtil;
 import net.minecraft.client.util.Window;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.Entity;
@@ -27,9 +30,15 @@ import net.minecraft.util.registry.Registry;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Properties;
 
 public class HorseDebugMain {
 	public static final String UTF8_STAR = "\u2B50";
@@ -110,6 +119,9 @@ public class HorseDebugMain {
 		}
 		return I18n.translate("gui.act.invView.cat.variant." + id.getPath());
 	}
+
+	private boolean show3DOverlay;
+	private KeyBinding configKey;
 
 	private HorseDebugMain() {
 		if (isAPIRegister())
@@ -273,6 +285,9 @@ public class HorseDebugMain {
 
 	public void renderWorld(Iterable<Entity> entities, MatrixStack matrices,
 							Camera camera, VertexConsumerProvider source) {
+		if (!show3DOverlay) {
+			return;
+		}
 		List<AbstractHorseEntity> horses = new ArrayList<>();
 		double bestScore = 0;
 		double bestJump = 0;
@@ -371,5 +386,56 @@ public class HorseDebugMain {
 
 			matrices.pop();
 		}
+	}
+
+	public void setup() {
+		log("Initialization");
+
+		configKey = new KeyBinding("gui.act.invView.horse", InputUtil.UNKNOWN_KEY.getCode(), "key.categories.horsedebug");
+		KeyBindingHelper.registerKeyBinding(configKey);
+
+		syncConfig();
+	}
+
+	public void onKey() {
+		if (configKey.wasPressed()) {
+			setShow3DOverlay(!isShow3DOverlay());
+		}
+	}
+
+	public void setShow3DOverlay(boolean show3DOverlay) {
+		this.show3DOverlay = show3DOverlay;
+		saveConfig();
+	}
+
+	public boolean isShow3DOverlay() {
+		return show3DOverlay;
+	}
+
+	public void syncConfig() {
+		Properties prop = new Properties();
+		try (InputStream stream = Files.newInputStream(getConfigFile())) {
+			prop.load(stream);
+		} catch (IOException | IllegalArgumentException e) {
+			// ignore
+		}
+
+		show3DOverlay = String.valueOf(prop.getOrDefault("show3DOverlay", show3DOverlay)).equals("true");
+
+		saveConfig();
+	}
+	public void saveConfig() {
+		Properties prop = new Properties();
+		prop.setProperty("show3DOverlay", String.valueOf(show3DOverlay));
+
+		try (OutputStream stream = Files.newOutputStream(getConfigFile())) {
+			prop.store(stream, "");
+		} catch (IOException | IllegalArgumentException e) {
+			// ignore
+		}
+	}
+
+	public Path getConfigFile() {
+		return MinecraftClient.getInstance().runDirectory.toPath().resolve("horsedebug.cfg");
 	}
 }
