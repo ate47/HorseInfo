@@ -199,13 +199,16 @@ public class HorseDebugMain {
 	}
 
 	private static double getJump(LivingEntity e) {
-		return getBaseValue(e, EntityAttributes.GENERIC_JUMP_STRENGTH);
+		return getBaseValue(e, EntityAttributes.JUMP_STRENGTH);
 	}
 
 	public String[] getEntityData(LivingEntity entity) {
 		List<String> text = Lists.newArrayList();
-		text.add("\u00a7b" + entity.getDisplayName().getString());
-		text.add("\u00a77" + EntityType.getId(entity.getType()).toString());
+		Text displayName = entity.getDisplayName();
+		if (displayName != null) {
+			text.add(Formatting.AQUA + displayName.getString());
+		}
+		text.add(Formatting.GRAY + EntityType.getId(entity.getType()).toString());
 
 		if (entity instanceof CatEntity cat) {
 			RegistryEntry<CatVariant> color = cat.getVariant();
@@ -213,12 +216,12 @@ public class HorseDebugMain {
 					+ ")");
 		} else if (entity instanceof SheepEntity sheep) {
 			var color = sheep.getColor();
-			text.add(I18n.translate("gui.act.invView.horse.variant") + ": " + color.getName() + " (" + color.getId() + ")");
+			text.add(I18n.translate("gui.act.invView.horse.variant") + ": " + color.asString() + " (" + color.getId() + ")");
 		} else if (entity instanceof AbstractHorseEntity baby) {
 			if (baby instanceof HorseEntity horse) {
-				HorseColor color = horse.getVariant();
+				HorseColor color = horse.getHorseColor();
 				HorseMarking markings = horse.getMarking();
-				int id = color.getId() + markings.getId() << 8;
+				int id = color.getIndex() + markings.getIndex() << 8;
 				text.add(I18n.translate("gui.act.invView.horse.variant") + ": " + getHorseColorName(color, markings) + " ("
 						+ id + ")");
 			}
@@ -226,8 +229,8 @@ public class HorseDebugMain {
 			text.add(I18n.translate("gui.act.invView.horse.jump") + ": "
 					+ STAT_JUMP.getFormattedText(getJump(baby)));
 			text.add(I18n.translate("gui.act.invView.horse.speed") + ": "
-					+ STAT_SPEED.getFormattedText(getBaseValue(baby, EntityAttributes.GENERIC_MOVEMENT_SPEED))
-					+ " m/s " + "(" + significantNumbers(getBaseValue(baby, EntityAttributes.GENERIC_MOVEMENT_SPEED))
+					+ STAT_SPEED.getFormattedText(getBaseValue(baby, EntityAttributes.MOVEMENT_SPEED))
+					+ " m/s " + "(" + significantNumbers(getBaseValue(baby, EntityAttributes.MOVEMENT_SPEED))
 					+ " iu)");
 			text.add(I18n.translate("gui.act.invView.horse.health") + ": "
 					+ STAT_HEALTH.getFormattedText((baby.getMaxHealth())) + " HP");
@@ -310,7 +313,7 @@ public class HorseDebugMain {
 
 				double jump = getJump(h);
 				double health = h.getMaxHealth();
-				double speed = getBaseValue(h, EntityAttributes.GENERIC_MOVEMENT_SPEED);
+				double speed = getBaseValue(h, EntityAttributes.MOVEMENT_SPEED);
 				double score = score(jump, health, speed);
 
 
@@ -335,7 +338,7 @@ public class HorseDebugMain {
 		for (AbstractHorseEntity h : horses) {
 			double jump = getJump(h);
 			double health = h.getMaxHealth();
-			double speed = getBaseValue(h, EntityAttributes.GENERIC_MOVEMENT_SPEED);
+			double speed = getBaseValue(h, EntityAttributes.MOVEMENT_SPEED);
 			double score = score(jump, health, speed);
 
 			texts[0] = Text.literal(STAT_JUMP.getFormattedText(jump, " b", jump >= bestJump));
@@ -344,7 +347,7 @@ public class HorseDebugMain {
 			texts[2] = Text.literal(STAT_SPEED.getFormattedText(speed, " m/s", speed >= bestSpeed));
 
 			if (score >= bestScore) {
-				texts[3] = Text.literal(Formatting.YELLOW + "" + UTF8_STAR);
+				texts[3] = Text.literal(Formatting.YELLOW + UTF8_STAR);
 			} else {
 				texts[3] = null;
 			}
