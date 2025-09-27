@@ -1,0 +1,38 @@
+{
+  "gui.act.invView.horse.jump": "Jump",
+  "gui.act.invView.horse.speed": "Speed",
+  "gui.act.invView.horse.health": "Health",
+  "gui.act.invView.horse.variant": "Variant",
+
+  "gui.act.invView.horse.variant.white": "White",
+  "gui.act.invView.horse.variant.creamy": "Creamy",
+  "gui.act.invView.horse.variant.chestnut": "Chestnut",
+  "gui.act.invView.horse.variant.brown": "Brown",
+  "gui.act.invView.horse.variant.black": "Black",
+  "gui.act.invView.horse.variant.gray": "Gray",
+  "gui.act.invView.horse.variant.darkbrown": "Darkbrown",
+  "gui.act.invView.horse.variant.unknown": "Unknown",
+
+  "gui.act.invView.horse.variant.marking.none": "None",
+  "gui.act.invView.horse.variant.marking.white": "White",
+  "gui.act.invView.horse.variant.marking.white_field": "White field",
+  "gui.act.invView.horse.variant.marking.white_dots": "White dots",
+  "gui.act.invView.horse.variant.marking.black_dots": "Black dots",
+  "gui.act.invView.horse.variant.marking.unknown": "Unknown",
+
+  "gui.act.invView.cat.variant.tabby": "Tabby",
+  "gui.act.invView.cat.variant.black": "Black",
+  "gui.act.invView.cat.variant.red": "Red",
+  "gui.act.invView.cat.variant.siamese": "Siamese",
+  "gui.act.invView.cat.variant.british_shorthair": "British shorthair",
+  "gui.act.invView.cat.variant.calico": "Calico",
+  "gui.act.invView.cat.variant.persian": "Persian",
+  "gui.act.invView.cat.variant.ragdoll": "Ragdoll",
+  "gui.act.invView.cat.variant.white": "White",
+  "gui.act.invView.cat.variant.jellie": "Jellie",
+  "gui.act.invView.cat.variant.all_black": "All black",
+  "gui.act.invView.cat.variant.unknown": "Unknown",
+
+  "key.categories.horsedebug": "Horse Debug",
+  "gui.act.invView.horse": "Toggle 3D overlay"
+}
