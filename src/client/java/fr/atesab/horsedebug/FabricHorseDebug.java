@@ -33,7 +33,7 @@ public class FabricHorseDebug implements BuildAPI, HudElement, ClientModInitiali
 
 	@Override
 	public void afterEntities(WorldRenderContext context) {
-		mod.renderWorld(context.world().getEntities(), context.matrixStack(), context.camera(), context.consumers());
+		mod.renderWorld(context.world().getEntities(), context.matrixStack(), context.camera(), context.consumers(), context.tickCounter().getTickProgress(true));
 	}
 
 	@Override

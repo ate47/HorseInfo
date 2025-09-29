@@ -15,6 +15,7 @@ import net.minecraft.client.util.InputUtil;
 import net.minecraft.client.util.Window;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityAttachmentType;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.attribute.EntityAttribute;
@@ -27,6 +28,7 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.hit.EntityHitResult;
 import net.minecraft.util.hit.HitResult;
+import net.minecraft.util.math.Vec3d;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.joml.Matrix4f;
@@ -284,7 +286,7 @@ public class HorseDebugMain {
 	}
 
 	public void renderWorld(Iterable<Entity> entities, MatrixStack matrices,
-							Camera camera, VertexConsumerProvider source) {
+							Camera camera, VertexConsumerProvider source, float tickProgress) {
 		if (!show3DOverlay) {
 			return;
 		}
@@ -335,10 +337,10 @@ public class HorseDebugMain {
 
 		Text[] texts = new Text[4];
 
-		for (AbstractHorseEntity h : horses) {
-			double jump = getJump(h);
-			double health = h.getMaxHealth();
-			double speed = getBaseValue(h, EntityAttributes.MOVEMENT_SPEED);
+		for (AbstractHorseEntity horse : horses) {
+			double jump = getJump(horse);
+			double health = horse.getMaxHealth();
+			double speed = getBaseValue(horse, EntityAttributes.MOVEMENT_SPEED);
 			double score = score(jump, health, speed);
 
 			texts[0] = Text.literal(STAT_JUMP.getFormattedText(jump, " b", jump >= bestJump));
@@ -352,33 +354,45 @@ public class HorseDebugMain {
 				texts[3] = null;
 			}
 
-			float textHeight = h.getHeight() + 0.5F;
+			float textHeight = horse.getHeight() + 0.5F;
 
-			Entity e = h;
+			Entity e = horse;
 
 			while (!e.getPassengerList().isEmpty()) {
 				e = e.getPassengerList().get(0);
 			}
 
-			double textY = e.getY();
+			Vec3d vec3d = e.getAttachments().getPointNullable(EntityAttachmentType.NAME_TAG, 0, e.getLerpedYaw(tickProgress));
+
+			if (vec3d == null) {
+				vec3d = horse.getAttachments().getPointNullable(EntityAttachmentType.NAME_TAG, 0, e.getLerpedYaw(tickProgress));
+				e = horse;
+
+				if (vec3d == null) {
+					continue; // wtf?
+				}
+			}
 
 			matrices.push();
-			matrices.translate(h.getX() - camera.getPos().x, textY - camera.getPos().y + textHeight,
-					h.getZ() - camera.getPos().z);
+			Vec3d entVec = e.getPos();
+			Vec3d camVec = camera.getPos();
+			matrices.translate(entVec.x + vec3d.x - camVec.x, entVec.y + vec3d.y + 0.5 - camVec.y, entVec.z + vec3d.z - camVec.z);
 			matrices.multiply(camera.getRotation());
-			matrices.scale(-0.025F, -0.025F, 0.025F);
-			Matrix4f matrix4f = matrices.peek().getPositionMatrix();;
+			matrices.scale(0.025F, -0.025F, 0.025F);
+			Matrix4f matrix4f = matrices.peek().getPositionMatrix();
+
 			int background = (int) (opacity * 255.0F) << 24;
-			int y = (h.hasCustomName() ? -(textRenderer.fontHeight + 4) : 0);
+			float y = (e.hasCustomName() ? -(textRenderer.fontHeight + 4) : 0);
 			for (Text text : texts) {
 				if (text == null) {
 					continue;
 				}
 
-				float x = (float) (-textRenderer.getWidth(text) / 2);
+				int textWidth = textRenderer.getWidth(text);
+				float x = (float) (-textWidth / 2);
 
-				textRenderer.draw(text, x, (float)y, 0xFFFFFFFF, false, matrix4f, source, TextRenderer.TextLayerType.NORMAL, background, 0xf000f0);
-				textRenderer.draw(text, x, (float)y, 0x22FFFFFF, false, matrix4f, source, TextRenderer.TextLayerType.SEE_THROUGH, 0, 0xf000f0);
+				textRenderer.draw(text, x, y, 0x22FFFFFF, false, matrix4f, source, TextRenderer.TextLayerType.SEE_THROUGH, 0, 0xf000f0);
+				textRenderer.draw(text, x, y, 0xFFFFFFFF, false, matrix4f, source, TextRenderer.TextLayerType.NORMAL, background, 0xf000f0);
 
 				y -= textRenderer.fontHeight + 2;
 			}

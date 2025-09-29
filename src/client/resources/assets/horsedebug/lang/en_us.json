@@ -10,7 +10,8 @@
   "gui.act.invView.horse.variant.brown": "Brown",
   "gui.act.invView.horse.variant.black": "Black",
   "gui.act.invView.horse.variant.gray": "Gray",
-  "gui.act.invView.horse.variant.darkbrown": "Darkbrown",
+  "gui.act.invView.horse.variant.darkbrown": "Dark brown",
+  "gui.act.invView.horse.variant.dark_brown": "Dark brown",
   "gui.act.invView.horse.variant.unknown": "Unknown",
 
   "gui.act.invView.horse.variant.marking.none": "None",
