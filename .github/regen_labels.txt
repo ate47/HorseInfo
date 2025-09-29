@@ -1,3 +1,0 @@
-Update this file to sync the labels.
-
-Add a cross for example: xxx
